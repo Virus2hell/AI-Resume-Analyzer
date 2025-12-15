@@ -13,6 +13,7 @@ export default function Home() {
   const [jobDescription, setJobDescription] = useState("");
   const [report, setReport] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const extractTextFromFile = async (file: File): Promise<string> => {
     const formData = new FormData();
@@ -35,17 +36,19 @@ export default function Home() {
 
   const handleResumeUpload = async (file: File) => {
     setResumeFile(file);
+    setError("");
     const text = await extractTextFromFile(file);
     setResumeText(text);
   };
 
   const handleAnalyze = async () => {
     if (!resumeText.trim() || !jobDescription.trim()) {
-      alert("Please provide both resume and job description");
+      setError("Please provide both resume and job description");
       return;
     }
 
     setLoading(true);
+    setError("");
     try {
       const response = await fetch("/api/analyze", {
         method: "POST",
@@ -62,7 +65,11 @@ export default function Home() {
       setStep(3);
     } catch (error) {
       console.error("Analysis failed:", error);
-      alert("Failed to analyze resume. Please try again.");
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to analyze resume. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -74,51 +81,88 @@ export default function Home() {
     setResumeText("");
     setJobDescription("");
     setReport(null);
+    setError("");
   };
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50">
       {/* Navigation */}
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-green-500 rounded-lg"></div>
-            <h1 className="text-2xl font-bold text-gray-800">
-              ResumeAnalyzer
-            </h1>
+      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg flex items-center justify-center">
+                <span className="text-white font-bold text-lg">RA</span>
+              </div>
+              <div className="flex flex-col">
+                <h1 className="text-2xl font-bold text-gray-900">
+                  ResumeAnalyzer
+                </h1>
+                <p className="text-xs text-gray-500">AI-Powered Resume Checker</p>
+              </div>
+            </div>
+            <span className="inline-block bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">
+              BETA
+            </span>
           </div>
-          <span className="inline-block bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-semibold">
-            BETA
-          </span>
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        {/* Step Indicator */}
         <StepIndicator currentStep={step} />
 
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg animate-slide-in">
+            <p className="text-red-800 font-semibold">❌ {error}</p>
+          </div>
+        )}
+
+        {/* Step 1: Upload Resume */}
         {step === 1 && (
           <FileUpload
             onUpload={handleResumeUpload}
-            onNext={() => setStep(2)}
+            onNext={() => {
+              setError("");
+              setStep(2);
+            }}
             fileName={resumeFile?.name}
             disabled={!resumeText}
           />
         )}
 
+        {/* Step 2: Job Description */}
         {step === 2 && (
           <JobDescriptionInput
             value={jobDescription}
-            onChange={setJobDescription}
+            onChange={(value) => {
+              setJobDescription(value);
+              setError("");
+            }}
             onAnalyze={handleAnalyze}
-            onBack={() => setStep(1)}
+            onBack={() => {
+              setStep(1);
+              setError("");
+            }}
             loading={loading}
             disabled={!jobDescription.trim()}
           />
         )}
 
+        {/* Step 3: Report */}
         {step === 3 && report && (
           <ReportDisplay report={report} onRestart={handleRestart} />
         )}
+      </div>
+
+      {/* Footer */}
+      <div className="mt-16 border-t border-gray-200 bg-white/50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center text-sm text-gray-600">
+          <p>
+            🚀 Powered by Groq AI | Built with Next.js & Tailwind CSS
+          </p>
+        </div>
       </div>
     </main>
   );

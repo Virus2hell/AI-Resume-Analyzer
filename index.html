@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResumeAnalyzer - AI Resume Checker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        .gradient-green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .gradient-blue { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+        
+        .radar-chart {
+            width: 300px;
+            height: 300px;
+            margin: 0 auto;
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: conic-gradient(#fbbf24 var(--score), #e5e7eb var(--score));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: #fbbf24;
+            position: relative;
+        }
+
+        .skill-badge {
+            display: inline-block;
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin: 4px;
+            font-weight: 500;
+        }
+
+        .skill-badge.present {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .skill-badge.missing {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .step {
+            text-align: center;
+            flex: 1;
+            position: relative;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-weight: 600;
+            color: #6b7280;
+        }
+
+        .step.active .step-circle {
+            background: #10b981;
+            color: white;
+        }
+
+        .step-line {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            right: -50%;
+            height: 2px;
+            background: #e5e7eb;
+            z-index: -1;
+        }
+
+        .step.active ~ .step .step-line {
+            background: #10b981;
+        }
+
+        .hidden { display: none; }
+        .visible { display: block; }
+
+        @media (max-width: 768px) {
+            .grid-2 { grid-template-columns: 1fr !important; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-green-500 rounded-lg"></div>
+                <h1 class="text-2xl font-bold text-gray-800">ResumeAnalyzer</h1>
+            </div>
+            <div class="text-sm text-gray-600">
+                <span class="inline-block bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-semibold">BETA</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Step Indicator -->
+        <div class="step-indicator mb-12">
+            <div class="step active" data-step="1">
+                <div class="step-circle">1</div>
+                <p class="text-sm font-semibold text-gray-700">Upload Resume</p>
+            </div>
+            <div class="step" data-step="2">
+                <div class="step-circle">2</div>
+                <p class="text-sm font-semibold text-gray-700">Add Job Description</p>
+            </div>
+            <div class="step" data-step="3">
+                <div class="step-circle">3</div>
+                <p class="text-sm font-semibold text-gray-700">View Report</p>
+            </div>
+            <div class="step-line"></div>
+        </div>
+
+        <!-- Step 1: Upload Resume -->
+        <div id="step1" class="step-content visible bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Upload Your Resume</h2>
+            <p class="text-gray-600 mb-6">Upload your resume in PDF or DOCX format</p>
+            
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center cursor-pointer hover:border-green-500 transition" id="dropZone">
+                <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                <p class="text-gray-700 font-semibold mb-2">Drag and drop your resume here</p>
+                <p class="text-gray-500 text-sm mb-4">or click to browse</p>
+                <p class="text-gray-400 text-xs">Supports PDF, DOCX (Max 5MB)</p>
+                <input type="file" id="resumeFile" accept=".pdf,.docx,.doc" class="hidden" />
+            </div>
+
+            <div id="fileInfo" class="hidden mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <p class="text-green-700 font-semibold" id="fileName"></p>
+            </div>
+
+            <div class="mt-8 flex gap-4">
+                <button onclick="nextStep()" id="step1Btn" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    Continue to Job Description
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 2: Job Description -->
+        <div id="step2" class="step-content hidden bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Add Job Description</h2>
+            <p class="text-gray-600 mb-6">Paste the job description you're applying for</p>
+            
+            <textarea id="jobDescription" placeholder="Paste the complete job description here..." class="w-full h-64 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none font-mono text-sm"></textarea>
+
+            <div class="mt-6 flex gap-4">
+                <button onclick="prevStep()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 rounded-lg transition">
+                    Back
+                </button>
+                <button onclick="analyzeResume()" id="step2Btn" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    Analyze Resume
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 3: Report -->
+        <div id="step3" class="step-content hidden">
+            <!-- Overview Section -->
+            <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">Analysis Report</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 p-6 rounded-lg">
+                        <p class="text-gray-600 text-sm font-semibold mb-2">ATS Match Score</p>
+                        <div class="score-circle" style="--score: calc(var(--score-percent, 0) * 3.6deg);">
+                            <span id="atsScore">0</span>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg">
+                        <p class="text-gray-600 text-sm font-semibold mb-2">Hard Skills Match</p>
+                        <p class="text-4xl font-bold text-blue-600" id="hardSkillsPercent">0%</p>
+                        <p class="text-sm text-gray-600 mt-2" id="hardSkillsText">0/0 present</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-lg">
+                        <p class="text-gray-600 text-sm font-semibold mb-2">Soft Skills Match</p>
+                        <p class="text-4xl font-bold text-purple-600" id="softSkillsPercent">0%</p>
+                        <p class="text-sm text-gray-600 mt-2" id="softSkillsText">0/0 present</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-lg">
+                        <p class="text-gray-600 text-sm font-semibold mb-2">Missing Sections</p>
+                        <p class="text-4xl font-bold text-green-600" id="missingSections">0</p>
+                        <p class="text-sm text-gray-600 mt-2">to add</p>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded mb-8">
+                    <p class="text-blue-900 font-semibold">📊 Overview</p>
+                    <p class="text-blue-700 text-sm mt-2" id="overviewText">Loading analysis...</p>
+                </div>
+            </div>
+
+            <!-- Skills Section -->
+            <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6">Skills Analysis</h3>
+                
+                <div class="mb-8">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4">Hard Skills</h4>
+                    <div class="space-y-4">
+                        <div id="hardSkillsContainer">
+                            <p class="text-gray-500 text-sm">Analyzing skills...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-8">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4">Soft Skills</h4>
+                    <div class="space-y-4">
+                        <div id="softSkillsContainer">
+                            <p class="text-gray-500 text-sm">Analyzing skills...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sections Check -->
+            <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6">Resume Sections</h3>
+                <div id="sectionsContainer" class="space-y-3">
+                    <p class="text-gray-500 text-sm">Checking sections...</p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-4 mt-8">
+                <button onclick="downloadReport()" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-lg transition">
+                    📥 Download Report
+                </button>
+                <button onclick="startOver()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 rounded-lg transition">
+                    Start Over
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let resumeText = '';
+        let jobDescriptionText = '';
+        let analysisResult = null;
+
+        // File Upload Handler
+        const dropZone = document.getElementById('dropZone');
+        const resumeFile = document.getElementById('resumeFile');
+
+        dropZone.addEventListener('click', () => resumeFile.click());
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#10b981';
+            dropZone.style.background = '#f0fdf4';
+        });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.style.borderColor = '#d1d5db';
+            dropZone.style.background = 'transparent';
+        });
+        dropZone.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (file) await handleFileUpload(file);
+        });
+
+        resumeFile.addEventListener('change', (e) => {
+            if (e.target.files[0]) handleFileUpload(e.target.files[0]);
+        });
+
+        async function handleFileUpload(file) {
+            // Simulate file reading (in production, use pdfjs and mammoth for real parsing)
+            const text = await file.text().catch(() => '');
+            resumeText = text || `${file.name} uploaded successfully`;
+            
+            document.getElementById('fileInfo').classList.remove('hidden');
+            document.getElementById('fileName').textContent = `✓ ${file.name} uploaded`;
+            document.getElementById('step1Btn').disabled = false;
+        }
+
+        function nextStep() {
+            if (currentStep === 1 && !resumeText) {
+                alert('Please upload a resume first');
+                return;
+            }
+            if (currentStep < 3) {
+                currentStep++;
+                updateUI();
+            }
+            if (currentStep === 2) {
+                document.getElementById('jobDescription').focus();
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateUI();
+            }
+        }
+
+        function updateUI() {
+            document.querySelectorAll('.step-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`step${currentStep}`).classList.remove('hidden');
+
+            document.querySelectorAll('.step').forEach((el, idx) => {
+                if (idx + 1 <= currentStep) {
+                    el.classList.add('active');
+                } else {
+                    el.classList.remove('active');
+                }
+            });
+
+            const step2Btn = document.getElementById('step2Btn');
+            if (step2Btn) {
+                step2Btn.disabled = !document.getElementById('jobDescription').value.trim();
+            }
+        }
+
+        document.getElementById('jobDescription').addEventListener('input', (e) => {
+            jobDescriptionText = e.target.value;
+            document.getElementById('step2Btn').disabled = !e.target.value.trim();
+        });
+
+        async function analyzeResume() {
+            if (!resumeText || !jobDescriptionText) {
+                alert('Please provide both resume and job description');
+                return;
+            }
+
+            // Simulate AI analysis
+            analysisResult = generateAnalysis(resumeText, jobDescriptionText);
+            
+            currentStep = 3;
+            updateUI();
+            displayReport();
+        }
+
+        function generateAnalysis(resume, jobDesc) {
+            // Comprehensive skill database
+            const hardSkills = [
+                // Frontend
+                'React', 'Angular', 'Vue.js', 'TypeScript', 'JavaScript', 'HTML', 'CSS', 'Tailwind CSS', 'Next.js', 'Redux',
+                // Backend
+                'Node.js', 'Express', 'Python', 'Django', 'FastAPI', 'Java', 'C#', '.NET', 'Go', 'Rust', 'PHP', 'Laravel',
+                // Database
+                'MongoDB', 'PostgreSQL', 'MySQL', 'Redis', 'Firebase', 'DynamoDB', 'SQL', 'NoSQL',
+                // Cloud & DevOps
+                'AWS', 'Azure', 'Google Cloud', 'Docker', 'Kubernetes', 'CI/CD', 'Jenkins', 'GitHub Actions', 'EC2', 'S3', 'Lambda', 'Serverless',
+                // Tools
+                'Git', 'GitHub', 'GitLab', 'Bitbucket', 'Postman', 'Jira', 'Linux', 'Windows Server',
+                // Other
+                'REST API', 'GraphQL', 'WebSocket', 'Microservices', 'AI', 'Machine Learning', 'TensorFlow', 'PyTorch', 'NLTK'
+            ];
+            const softSkills = ['Communication', 'Teamwork', 'Leadership', 'Problem Solving', 'Time Management', 'Attention to Detail', 'Collaboration', 'Adaptability', 'Critical Thinking', 'Decision Making', 'Creativity', 'Analytical Skills', 'Organization', 'Accountability', 'Interpersonal Skills', 'Mentoring', 'Project Management', 'Documentation'];
+            
+            const resumeWords = resume.toLowerCase();
+            const jobWords = jobDesc.toLowerCase();
+
+            const hardSkillsPresent = hardSkills.filter(skill => resumeWords.includes(skill.toLowerCase())).length;
+            const softSkillsPresent = softSkills.filter(skill => resumeWords.includes(skill.toLowerCase())).length;
+
+            const hardSkillsPercent = Math.round((hardSkillsPresent / hardSkills.length) * 100);
+            const softSkillsPercent = Math.round((softSkillsPresent / softSkills.length) * 100);
+
+            const atsScore = Math.round((hardSkillsPercent + softSkillsPercent) / 2);
+
+            return {
+                atsScore,
+                hardSkillsMatch: { present: hardSkillsPresent, total: hardSkills.length, percent: hardSkillsPercent },
+                softSkillsMatch: { present: softSkillsPresent, total: softSkills.length, percent: softSkillsPercent },
+                hardSkillsPresent: hardSkills.slice(0, hardSkillsPresent),
+                hardSkillsMissing: hardSkills.slice(hardSkillsPresent),
+                softSkillsPresent: softSkills.slice(0, softSkillsPresent),
+                softSkillsMissing: softSkills.slice(softSkillsPresent),
+                missingSections: ['Summary', 'Certifications'],
+                overview: `Your resume scores ${atsScore} on ATS compatibility. You have strong experience in the required technologies but are missing some key skills mentioned in the job description.`
+            };
+        }
+
+        function displayReport() {
+            const r = analysisResult;
+
+            document.getElementById('atsScore').textContent = r.atsScore;
+            document.getElementById('hardSkillsPercent').textContent = r.hardSkillsMatch.percent + '%';
+            document.getElementById('hardSkillsText').textContent = `${r.hardSkillsMatch.present}/${r.hardSkillsMatch.total} present`;
+            document.getElementById('softSkillsPercent').textContent = r.softSkillsMatch.percent + '%';
+            document.getElementById('softSkillsText').textContent = `${r.softSkillsMatch.present}/${r.softSkillsMatch.total} present`;
+            document.getElementById('missingSections').textContent = r.missingSections.length;
+            document.getElementById('overviewText').textContent = r.overview;
+
+            // Hard Skills
+            let hardSkillsHTML = '';
+            r.hardSkillsPresent.forEach(skill => {
+                hardSkillsHTML += `<span class="skill-badge present">✓ ${skill}</span>`;
+            });
+            r.hardSkillsMissing.forEach(skill => {
+                hardSkillsHTML += `<span class="skill-badge missing">✗ ${skill}</span>`;
+            });
+            document.getElementById('hardSkillsContainer').innerHTML = hardSkillsHTML || '<p class="text-gray-500 text-sm">No skills analyzed</p>';
+
+            // Soft Skills
+            let softSkillsHTML = '';
+            r.softSkillsPresent.forEach(skill => {
+                softSkillsHTML += `<span class="skill-badge present">✓ ${skill}</span>`;
+            });
+            r.softSkillsMissing.forEach(skill => {
+                softSkillsHTML += `<span class="skill-badge missing">✗ ${skill}</span>`;
+            });
+            document.getElementById('softSkillsContainer').innerHTML = softSkillsHTML || '<p class="text-gray-500 text-sm">No skills analyzed</p>';
+
+            // Sections
+            let sectionsHTML = '';
+            const allSections = ['Name', 'Email', 'Phone', 'Experience', 'Education', 'Skills', 'Summary', 'Certifications'];
+            const hasSummary = resumeText.toLowerCase().includes('summary');
+            const hasCerts = resumeText.toLowerCase().includes('certif');
+
+            allSections.forEach(section => {
+                const present = (section === 'Summary' && hasSummary) || (section === 'Certifications' && hasCerts) || 
+                               ['Name', 'Email', 'Phone', 'Experience', 'Education', 'Skills'].includes(section);
+                const icon = present ? '✓' : '✗';
+                const color = present ? 'text-green-600' : 'text-red-600';
+                sectionsHTML += `<div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                    <span class="${color} font-semibold">${icon} ${section}</span>
+                </div>`;
+            });
+            document.getElementById('sectionsContainer').innerHTML = sectionsHTML;
+        }
+
+        function downloadReport() {
+            const reportContent = `
+RESUME ANALYSIS REPORT
+======================
+
+ATS Score: ${analysisResult.atsScore}/100
+
+Hard Skills Match: ${analysisResult.hardSkillsMatch.percent}% (${analysisResult.hardSkillsMatch.present}/${analysisResult.hardSkillsMatch.total})
+Soft Skills Match: ${analysisResult.softSkillsMatch.percent}% (${analysisResult.softSkillsMatch.present}/${analysisResult.softSkillsMatch.total})
+
+Overview:
+${analysisResult.overview}
+
+Hard Skills Present:
+${analysisResult.hardSkillsPresent.join(', ')}
+
+Hard Skills Missing:
+${analysisResult.hardSkillsMissing.join(', ')}
+
+Soft Skills Present:
+${analysisResult.softSkillsPresent.join(', ')}
+
+Soft Skills Missing:
+${analysisResult.softSkillsMissing.join(', ')}
+
+Sections to Add:
+${analysisResult.missingSections.join(', ')}
+            `;
+            
+            const blob = new Blob([reportContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'resume-analysis-report.txt';
+            a.click();
+        }
+
+        function startOver() {
+            currentStep = 1;
+            resumeText = '';
+            jobDescriptionText = '';
+            analysisResult = null;
+            document.getElementById('resumeFile').value = '';
+            document.getElementById('jobDescription').value = '';
+            document.getElementById('fileInfo').classList.add('hidden');
+            document.getElementById('step1Btn').disabled = true;
+            updateUI();
+        }
+    </script>
+</body>
+</html>
