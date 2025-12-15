@@ -1,6 +1,4 @@
-// app/resume-analysis/page.tsx
-"use client";
-
+// src/pages/ResumeAnalysis.tsx
 import { useState } from "react";
 import Layout from "@/components/Layout";
 import FileUpload from "@/components/FileUpload";
@@ -11,19 +9,14 @@ import {
   XCircle,
   AlertCircle,
 } from "lucide-react";
-
-interface AnalysisResult {
-  overallScore: number;
-  matchPercentage: number;
-  strengths: string[];
-  improvements: string[];
-  missingKeywords: string[];
-  recommendations: string[];
-}
+import {
+  analyzeWithGroq,
+  AnalysisResult,
+} from "@/lib/analyzeResume";
 
 const ResumeAnalysis = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [resumeText, setResumeText] = useState(""); // extracted text
+  const [resumeText, setResumeText] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] =
@@ -53,14 +46,12 @@ const ResumeAnalysis = () => {
     setError(null);
   };
 
-  // Simple text extraction – for PDFs you might still prefer your existing /api/extract-pdf route.
   const extractTextFromFile = async (file: File): Promise<string> => {
-    if (file.type === "text/plain") {
-      const text = await file.text();
-      return text;
+    // if you already have a PDF/DOCX parser, plug it here
+    if (file.type.startsWith("text/")) {
+      return await file.text();
     }
-
-    // Fallback: just send filename + basic info if binary
+    // Fallback: at least send some content
     return `File name: ${file.name}, type: ${file.type}`;
   };
 
@@ -78,22 +69,8 @@ const ResumeAnalysis = () => {
     setError(null);
 
     try {
-      const res = await fetch("/api/analyze-resume", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          resumeText,
-          jobDescription,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Analysis failed");
-      }
-
-      setAnalysisResult(data as AnalysisResult);
+      const result = await analyzeWithGroq(resumeText, jobDescription);
+      setAnalysisResult(result);
     } catch (err) {
       console.error("Analysis error:", err);
       setError(
@@ -160,7 +137,7 @@ const ResumeAnalysis = () => {
                 />
               </div>
 
-              {/* Error Message */}
+              {/* Error */}
               {error && (
                 <div className="flex items-center gap-3 rounded-lg bg-destructive/10 p-4 text-destructive">
                   <AlertCircle className="h-5 w-5 flex-shrink-0" />
@@ -193,7 +170,6 @@ const ResumeAnalysis = () => {
               </button>
             </div>
           ) : (
-            /* Results Section */
             <div className="space-y-8 animate-fade-in">
               {/* Score Cards */}
               <div className="grid gap-6 sm:grid-cols-2">
@@ -240,32 +216,32 @@ const ResumeAnalysis = () => {
                   Strengths
                 </h3>
                 <ul className="space-y-3">
-                  {analysisResult.strengths.map((strength, index) => (
+                  {analysisResult.strengths.map((s, i) => (
                     <li
-                      key={index}
+                      key={i}
                       className="flex items-start gap-3 text-sm text-muted-foreground"
                     >
                       <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-                      {strength}
+                      {s}
                     </li>
                   ))}
                 </ul>
               </div>
 
-              {/* Areas for Improvement */}
+              {/* Improvements */}
               <div className="card-base">
                 <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
                   <AlertCircle className="h-5 w-5 text-accent" />
                   Areas for Improvement
                 </h3>
                 <ul className="space-y-3">
-                  {analysisResult.improvements.map((improvement, index) => (
+                  {analysisResult.improvements.map((imp, i) => (
                     <li
-                      key={index}
+                      key={i}
                       className="flex items-start gap-3 text-sm text-muted-foreground"
                     >
                       <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-accent" />
-                      {improvement}
+                      {imp}
                     </li>
                   ))}
                 </ul>
@@ -278,12 +254,12 @@ const ResumeAnalysis = () => {
                   Missing Keywords
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {analysisResult.missingKeywords.map((keyword, index) => (
+                  {analysisResult.missingKeywords.map((kw, i) => (
                     <span
-                      key={index}
+                      key={i}
                       className="rounded-full bg-destructive/10 px-3 py-1 text-sm font-medium text-destructive"
                     >
-                      {keyword}
+                      {kw}
                     </span>
                   ))}
                 </div>
@@ -296,23 +272,21 @@ const ResumeAnalysis = () => {
                   Recommendations
                 </h3>
                 <ul className="space-y-3">
-                  {analysisResult.recommendations.map(
-                    (recommendation, index) => (
-                      <li
-                        key={index}
-                        className="flex items-start gap-3 text-sm text-muted-foreground"
-                      >
-                        <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
-                          {index + 1}
-                        </span>
-                        {recommendation}
-                      </li>
-                    )
-                  )}
+                  {analysisResult.recommendations.map((rec, i) => (
+                    <li
+                      key={i}
+                      className="flex items-start gap-3 text-sm text-muted-foreground"
+                    >
+                      <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
+                        {i + 1}
+                      </span>
+                      {rec}
+                    </li>
+                  ))}
                 </ul>
               </div>
 
-              {/* Try Again Button */}
+              {/* Try Again */}
               <button
                 onClick={() => {
                   setAnalysisResult(null);
