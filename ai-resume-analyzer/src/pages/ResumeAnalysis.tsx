@@ -1,8 +1,16 @@
-import { useState } from 'react';
-import Layout from '@/components/Layout';
-import FileUpload from '@/components/FileUpload';
-import { Loader2, Sparkles, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+// app/resume-analysis/page.tsx
+"use client";
+
+import { useState } from "react";
+import Layout from "@/components/Layout";
+import FileUpload from "@/components/FileUpload";
+import {
+  Loader2,
+  Sparkles,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+} from "lucide-react";
 
 interface AnalysisResult {
   overallScore: number;
@@ -15,46 +23,54 @@ interface AnalysisResult {
 
 const ResumeAnalysis = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [jobDescription, setJobDescription] = useState('');
+  const [resumeText, setResumeText] = useState(""); // extracted text
+  const [jobDescription, setJobDescription] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [analysisResult, setAnalysisResult] =
+    useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleFileSelect = (file: File) => {
+  const handleFileSelect = async (file: File) => {
     setSelectedFile(file);
     setError(null);
     setAnalysisResult(null);
+
+    try {
+      const text = await extractTextFromFile(file);
+      setResumeText(text);
+    } catch (err) {
+      console.error("File extract error:", err);
+      setError(
+        "Could not read resume file. Please try another file or re-upload."
+      );
+    }
   };
 
   const handleRemoveFile = () => {
     setSelectedFile(null);
+    setResumeText("");
     setAnalysisResult(null);
+    setError(null);
   };
 
+  // Simple text extraction – for PDFs you might still prefer your existing /api/extract-pdf route.
   const extractTextFromFile = async (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        try {
-          const arrayBuffer = e.target?.result as ArrayBuffer;
-          const uint8Array = new Uint8Array(arrayBuffer);
-          
-          // For PDF files, we'll send the base64 to the edge function
-          // For simplicity, we'll convert to base64
-          const base64 = btoa(String.fromCharCode.apply(null, Array.from(uint8Array)));
-          resolve(base64);
-        } catch (err) {
-          reject(err);
-        }
-      };
-      reader.onerror = () => reject(reader.error);
-      reader.readAsArrayBuffer(file);
-    });
+    if (file.type === "text/plain") {
+      const text = await file.text();
+      return text;
+    }
+
+    // Fallback: just send filename + basic info if binary
+    return `File name: ${file.name}, type: ${file.type}`;
   };
 
   const handleAnalyze = async () => {
     if (!selectedFile || !jobDescription.trim()) {
-      setError('Please upload a resume and enter a job description.');
+      setError("Please upload a resume and enter a job description.");
+      return;
+    }
+    if (!resumeText.trim()) {
+      setError("Resume text could not be extracted.");
       return;
     }
 
@@ -62,44 +78,44 @@ const ResumeAnalysis = () => {
     setError(null);
 
     try {
-      const fileContent = await extractTextFromFile(selectedFile);
-      
-      const { data, error: functionError } = await supabase.functions.invoke('analyze-resume', {
-        body: {
-          resumeContent: fileContent,
-          fileName: selectedFile.name,
-          fileType: selectedFile.type,
-          jobDescription: jobDescription,
-        },
+      const res = await fetch("/api/analyze-resume", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          resumeText,
+          jobDescription,
+        }),
       });
 
-      if (functionError) {
-        throw new Error(functionError.message);
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Analysis failed");
       }
 
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      setAnalysisResult(data);
+      setAnalysisResult(data as AnalysisResult);
     } catch (err) {
-      console.error('Analysis error:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred during analysis. Please try again.');
+      console.error("Analysis error:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred during analysis. Please try again."
+      );
     } finally {
       setIsAnalyzing(false);
     }
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-primary';
-    if (score >= 60) return 'text-accent';
-    return 'text-destructive';
+    if (score >= 80) return "text-primary";
+    if (score >= 60) return "text-accent";
+    return "text-destructive";
   };
 
   const getScoreBgColor = (score: number) => {
-    if (score >= 80) return 'bg-primary/10';
-    if (score >= 60) return 'bg-accent/10';
-    return 'bg-destructive/10';
+    if (score >= 80) return "bg-primary/10";
+    if (score >= 60) return "bg-accent/10";
+    return "bg-destructive/10";
   };
 
   return (
@@ -112,7 +128,8 @@ const ResumeAnalysis = () => {
               Resume Analysis
             </h1>
             <p className="mt-4 text-muted-foreground">
-              Upload your resume and paste the job description to get AI-powered insights
+              Upload your resume and paste the job description to get
+              Groq-powered insights
             </p>
           </div>
 
@@ -154,7 +171,12 @@ const ResumeAnalysis = () => {
               {/* Analyze Button */}
               <button
                 onClick={handleAnalyze}
-                disabled={isAnalyzing || !selectedFile || !jobDescription.trim()}
+                disabled={
+                  isAnalyzing ||
+                  !selectedFile ||
+                  !jobDescription.trim() ||
+                  !resumeText.trim()
+                }
                 className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isAnalyzing ? (
@@ -175,16 +197,36 @@ const ResumeAnalysis = () => {
             <div className="space-y-8 animate-fade-in">
               {/* Score Cards */}
               <div className="grid gap-6 sm:grid-cols-2">
-                <div className={`card-base text-center ${getScoreBgColor(analysisResult.overallScore)}`}>
-                  <p className="text-sm font-medium text-muted-foreground">Overall Score</p>
-                  <p className={`mt-2 text-5xl font-bold ${getScoreColor(analysisResult.overallScore)}`}>
+                <div
+                  className={`card-base text-center ${getScoreBgColor(
+                    analysisResult.overallScore
+                  )}`}
+                >
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Overall Score
+                  </p>
+                  <p
+                    className={`mt-2 text-5xl font-bold ${getScoreColor(
+                      analysisResult.overallScore
+                    )}`}
+                  >
                     {analysisResult.overallScore}
                   </p>
                   <p className="text-sm text-muted-foreground">out of 100</p>
                 </div>
-                <div className={`card-base text-center ${getScoreBgColor(analysisResult.matchPercentage)}`}>
-                  <p className="text-sm font-medium text-muted-foreground">Job Match</p>
-                  <p className={`mt-2 text-5xl font-bold ${getScoreColor(analysisResult.matchPercentage)}`}>
+                <div
+                  className={`card-base text-center ${getScoreBgColor(
+                    analysisResult.matchPercentage
+                  )}`}
+                >
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Job Match
+                  </p>
+                  <p
+                    className={`mt-2 text-5xl font-bold ${getScoreColor(
+                      analysisResult.matchPercentage
+                    )}`}
+                  >
                     {analysisResult.matchPercentage}%
                   </p>
                   <p className="text-sm text-muted-foreground">match rate</p>
@@ -199,7 +241,10 @@ const ResumeAnalysis = () => {
                 </h3>
                 <ul className="space-y-3">
                   {analysisResult.strengths.map((strength, index) => (
-                    <li key={index} className="flex items-start gap-3 text-sm text-muted-foreground">
+                    <li
+                      key={index}
+                      className="flex items-start gap-3 text-sm text-muted-foreground"
+                    >
                       <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
                       {strength}
                     </li>
@@ -215,7 +260,10 @@ const ResumeAnalysis = () => {
                 </h3>
                 <ul className="space-y-3">
                   {analysisResult.improvements.map((improvement, index) => (
-                    <li key={index} className="flex items-start gap-3 text-sm text-muted-foreground">
+                    <li
+                      key={index}
+                      className="flex items-start gap-3 text-sm text-muted-foreground"
+                    >
                       <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-accent" />
                       {improvement}
                     </li>
@@ -248,14 +296,19 @@ const ResumeAnalysis = () => {
                   Recommendations
                 </h3>
                 <ul className="space-y-3">
-                  {analysisResult.recommendations.map((recommendation, index) => (
-                    <li key={index} className="flex items-start gap-3 text-sm text-muted-foreground">
-                      <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
-                        {index + 1}
-                      </span>
-                      {recommendation}
-                    </li>
-                  ))}
+                  {analysisResult.recommendations.map(
+                    (recommendation, index) => (
+                      <li
+                        key={index}
+                        className="flex items-start gap-3 text-sm text-muted-foreground"
+                      >
+                        <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
+                          {index + 1}
+                        </span>
+                        {recommendation}
+                      </li>
+                    )
+                  )}
                 </ul>
               </div>
 
@@ -264,7 +317,8 @@ const ResumeAnalysis = () => {
                 onClick={() => {
                   setAnalysisResult(null);
                   setSelectedFile(null);
-                  setJobDescription('');
+                  setResumeText("");
+                  setJobDescription("");
                 }}
                 className="btn-secondary w-full"
               >

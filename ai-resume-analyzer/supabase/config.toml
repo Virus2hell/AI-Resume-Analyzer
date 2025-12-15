@@ -1,4 +1,0 @@
-project_id = "skjkqzyboenogucpglxx"
-
-[functions.analyze-resume]
-verify_jwt = false
