@@ -2,10 +2,13 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 import Groq from "groq-sdk";
+import dotenv from "dotenv";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+dotenv.config();
 
 const apiKey = process.env.GROQ_API_KEY;
 
@@ -38,6 +41,11 @@ app.post("/api/analyze-resume", async (req: Request, res: Response) => {
         .json({ error: "Missing resumeText or jobDescription" });
     }
 
+    console.log("Received analyze request:", {
+      resumeLength: resumeText.length,
+      jdLength: jobDescription.length,
+    });
+
     const prompt = `
 You are an expert ATS and resume evaluator.
 
@@ -62,33 +70,46 @@ Return strictly this JSON shape:
 `.trim();
 
     const completion = await groq.chat.completions.create({
-      model: "mixtral-8x7b-32768",
+      model: "llama-3.3-70b-versatile",
       temperature: 0.2,
       max_tokens: 800,
       messages: [{ role: "user", content: prompt }],
     });
 
     const content = completion.choices[0]?.message?.content;
+    console.log("Groq raw content:", content);
+
     if (!content) {
       return res.status(500).json({ error: "Empty response from Groq" });
     }
 
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
+      console.error("No JSON match in Groq content");
       return res
         .status(500)
         .json({ error: "Groq response did not contain JSON" });
     }
 
-    const parsed = JSON.parse(jsonMatch[0]) as AnalysisResult;
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonMatch[0]);
+    } catch (e) {
+      console.error("JSON.parse failed:", e);
+      return res
+        .status(500)
+        .json({ error: "Failed to parse Groq response JSON" });
+    }
+
     return res.json(parsed);
   } catch (error) {
-    console.error("Groq analysis error:", error);
+    console.error("Groq analysis error (outer catch):", error);
     return res
       .status(500)
       .json({ error: "Failed to analyze resume. Please try again." });
   }
 });
+
 
 const PORT = Number(process.env.PORT) || 4000;
 app.listen(PORT, () => {
