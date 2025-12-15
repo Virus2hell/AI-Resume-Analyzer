@@ -9,10 +9,18 @@ import {
   XCircle,
   AlertCircle,
 } from "lucide-react";
-import {
-  analyzeWithGroq,
-  AnalysisResult,
-} from "@/lib/analyzeResume";
+
+interface AnalysisResult {
+  overallScore: number;
+  matchPercentage: number;
+  strengths: string[];
+  improvements: string[];
+  missingKeywords: string[];
+  recommendations: string[];
+}
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
 const ResumeAnalysis = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -47,11 +55,11 @@ const ResumeAnalysis = () => {
   };
 
   const extractTextFromFile = async (file: File): Promise<string> => {
-    // if you already have a PDF/DOCX parser, plug it here
+    // If you later add PDF/DOCX parsing, plug it here.
     if (file.type.startsWith("text/")) {
       return await file.text();
     }
-    // Fallback: at least send some content
+    // Fallback so Groq still has something to analyze
     return `File name: ${file.name}, type: ${file.type}`;
   };
 
@@ -69,8 +77,22 @@ const ResumeAnalysis = () => {
     setError(null);
 
     try {
-      const result = await analyzeWithGroq(resumeText, jobDescription);
-      setAnalysisResult(result);
+      const response = await fetch(`${API_BASE_URL}/api/analyze-resume`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          resumeText,
+          jobDescription,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Analysis failed");
+      }
+
+      setAnalysisResult(data as AnalysisResult);
     } catch (err) {
       console.error("Analysis error:", err);
       setError(
@@ -190,6 +212,7 @@ const ResumeAnalysis = () => {
                   </p>
                   <p className="text-sm text-muted-foreground">out of 100</p>
                 </div>
+
                 <div
                   className={`card-base text-center ${getScoreBgColor(
                     analysisResult.matchPercentage
@@ -216,13 +239,13 @@ const ResumeAnalysis = () => {
                   Strengths
                 </h3>
                 <ul className="space-y-3">
-                  {analysisResult.strengths.map((s, i) => (
+                  {analysisResult.strengths.map((strength, index) => (
                     <li
-                      key={i}
+                      key={index}
                       className="flex items-start gap-3 text-sm text-muted-foreground"
                     >
                       <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-                      {s}
+                      {strength}
                     </li>
                   ))}
                 </ul>
@@ -235,13 +258,13 @@ const ResumeAnalysis = () => {
                   Areas for Improvement
                 </h3>
                 <ul className="space-y-3">
-                  {analysisResult.improvements.map((imp, i) => (
+                  {analysisResult.improvements.map((improvement, index) => (
                     <li
-                      key={i}
+                      key={index}
                       className="flex items-start gap-3 text-sm text-muted-foreground"
                     >
                       <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-accent" />
-                      {imp}
+                      {improvement}
                     </li>
                   ))}
                 </ul>
@@ -254,12 +277,12 @@ const ResumeAnalysis = () => {
                   Missing Keywords
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {analysisResult.missingKeywords.map((kw, i) => (
+                  {analysisResult.missingKeywords.map((keyword, index) => (
                     <span
-                      key={i}
+                      key={index}
                       className="rounded-full bg-destructive/10 px-3 py-1 text-sm font-medium text-destructive"
                     >
-                      {kw}
+                      {keyword}
                     </span>
                   ))}
                 </div>
@@ -272,21 +295,23 @@ const ResumeAnalysis = () => {
                   Recommendations
                 </h3>
                 <ul className="space-y-3">
-                  {analysisResult.recommendations.map((rec, i) => (
-                    <li
-                      key={i}
-                      className="flex items-start gap-3 text-sm text-muted-foreground"
-                    >
-                      <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
-                        {i + 1}
-                      </span>
-                      {rec}
-                    </li>
-                  ))}
+                  {analysisResult.recommendations.map(
+                    (recommendation, index) => (
+                      <li
+                        key={index}
+                        className="flex items-start gap-3 text-sm text-muted-foreground"
+                      >
+                        <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
+                          {index + 1}
+                        </span>
+                        {recommendation}
+                      </li>
+                    )
+                  )}
                 </ul>
               </div>
 
-              {/* Try Again */}
+              {/* Try Again Button */}
               <button
                 onClick={() => {
                   setAnalysisResult(null);
