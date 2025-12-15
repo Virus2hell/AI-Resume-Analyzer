@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { analyzeResume } from "@/lib/aiAnalyzer";
+import { analyzeResume } from "@/lib/aiAnalyzer-groq";
 
 export async function POST(request: NextRequest) {
   try {

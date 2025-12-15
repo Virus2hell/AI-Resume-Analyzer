@@ -1,4 +1,11 @@
+// AI Analyzer using Groq API - Smart analysis with 68+ skills
+
 import { AnalysisResult } from "./types";
+import Groq from "groq-sdk";
+
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY,
+});
 
 // Comprehensive skill lists
 const HARD_SKILLS = [
@@ -13,7 +20,7 @@ const HARD_SKILLS = [
   "Tailwind CSS",
   "Next.js",
   "Redux",
-  
+
   // Backend
   "Node.js",
   "Express",
@@ -27,7 +34,7 @@ const HARD_SKILLS = [
   "Rust",
   "PHP",
   "Laravel",
-  
+
   // Databases
   "MongoDB",
   "PostgreSQL",
@@ -37,7 +44,7 @@ const HARD_SKILLS = [
   "DynamoDB",
   "SQL",
   "NoSQL",
-  
+
   // Cloud & DevOps
   "AWS",
   "Azure",
@@ -51,7 +58,7 @@ const HARD_SKILLS = [
   "S3",
   "Lambda",
   "Serverless",
-  
+
   // Tools & Version Control
   "Git",
   "GitHub",
@@ -61,7 +68,7 @@ const HARD_SKILLS = [
   "Jira",
   "Linux",
   "Windows Server",
-  
+
   // Other Tech
   "REST API",
   "GraphQL",
@@ -110,7 +117,38 @@ export async function analyzeResume(
   resume: string,
   jobDescription: string
 ): Promise<AnalysisResult> {
-  // Normalize text for comparison
+  try {
+    // First, do local analysis with skill matching
+    const localAnalysis = performLocalAnalysis(resume, jobDescription);
+
+    // Optionally, use Groq for enhanced analysis (optional enhancement)
+    // Uncomment below if you want AI-powered insights in addition to skill matching
+    /*
+    try {
+      const groqInsights = await getGroqInsights(resume, jobDescription);
+      // Merge insights with local analysis if needed
+      return {
+        ...localAnalysis,
+        // You can enhance the overview with Groq insights here
+      };
+    } catch (groqError) {
+      console.warn("Groq API call failed, using local analysis:", groqError);
+      return localAnalysis;
+    }
+    */
+
+    return localAnalysis;
+  } catch (error) {
+    console.error("Analysis error:", error);
+    throw error;
+  }
+}
+
+// Local analysis - works without API calls
+function performLocalAnalysis(
+  resume: string,
+  jobDescription: string
+): AnalysisResult {
   const resumeText = resume.toLowerCase();
   const jobText = jobDescription.toLowerCase();
 
@@ -123,7 +161,7 @@ export async function analyzeResume(
     resumeText.includes(skill.toLowerCase())
   );
 
-  // Get missing skills
+  // Get required skills from job description
   const requiredHardSkills = HARD_SKILLS.filter((skill) =>
     jobText.includes(skill.toLowerCase())
   );
@@ -132,6 +170,7 @@ export async function analyzeResume(
     jobText.includes(skill.toLowerCase())
   );
 
+  // Calculate missing skills
   const missingHardSkills = requiredHardSkills.filter(
     (skill) => !presentHardSkills.includes(skill)
   );
@@ -172,12 +211,12 @@ export async function analyzeResume(
         )
       : 100;
 
-  // Calculate ATS score (0-100)
+  // Calculate ATS score
   const skillsScore = (hardSkillsPercent + softSkillsPercent) / 2;
   const sectionsScore = (presentSections.length / RESUME_SECTIONS.length) * 100;
   const atsScore = Math.round((skillsScore + sectionsScore) / 2);
 
-  // Generate overview text
+  // Generate analysis text
   const overview = generateOverview(
     atsScore,
     hardSkillsPercent,
@@ -186,7 +225,6 @@ export async function analyzeResume(
     missingSections
   );
 
-  // Generate recommendations
   const recommendations = generateRecommendations(
     missingHardSkills,
     missingSections,
@@ -223,6 +261,38 @@ export async function analyzeResume(
     presentSections,
     recommendations,
   };
+}
+
+// Optional: Get enhanced insights from Groq (you can enable this if needed)
+async function getGroqInsights(
+  resume: string,
+  jobDescription: string
+): Promise<string> {
+  const message = await groq.messages.create({
+    model: "mixtral-8x7b-32768", // Fast, free Groq model
+    max_tokens: 500,
+    messages: [
+      {
+        role: "user",
+        content: `Briefly analyze this resume against the job description in 2-3 sentences.
+
+Resume excerpt:
+${resume.substring(0, 500)}
+
+Job Description excerpt:
+${jobDescription.substring(0, 500)}
+
+Focus on key strengths and gaps.`,
+      },
+    ],
+  });
+
+  const content = message.content[0];
+  if (content.type === "text") {
+    return content.text;
+  }
+
+  return "";
 }
 
 function generateOverview(
@@ -305,5 +375,5 @@ function generateRecommendations(
     );
   }
 
-  return recommendations.slice(0, 5); // Return top 5 recommendations
+  return recommendations.slice(0, 5);
 }
