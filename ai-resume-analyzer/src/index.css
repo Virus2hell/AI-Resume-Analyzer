@@ -16,10 +16,11 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 20% 15%;
 
-    /* Soft mint/teal primary */
-    --primary: 168 60% 45%;
+    /* Primary: #730ecc (hsl(272, 89%, 43%)) */
+    --primary: 272 89% 43%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 168 60% 38%;
+    /* Slightly darker for hover */
+    --primary-hover: 272 89% 36%;
 
     /* Light gray secondary */
     --secondary: 220 14% 96%;
@@ -28,7 +29,7 @@
     --muted: 220 14% 96%;
     --muted-foreground: 220 10% 50%;
 
-    /* Soft coral accent */
+    /* Soft coral accent (unchanged) */
     --accent: 12 80% 62%;
     --accent-foreground: 0 0% 100%;
 
@@ -37,20 +38,36 @@
 
     --border: 220 14% 90%;
     --input: 220 14% 90%;
-    --ring: 168 60% 45%;
+    /* Use primary for ring */
+    --ring: 272 89% 43%;
 
     --radius: 0.75rem;
 
-    /* Custom tokens */
-    --gradient-primary: linear-gradient(135deg, hsl(168, 60%, 45%) 0%, hsl(180, 50%, 40%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(0, 0%, 100%) 0%, hsl(220, 14%, 98%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(220, 20%, 98%) 0%, hsl(168, 30%, 95%) 100%);
-    
+    /* Gradients updated to use purple primary */
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(272, 89%, 43%) 0%,
+      hsl(281, 70%, 48%) 100%
+    );
+    --gradient-subtle: linear-gradient(
+      180deg,
+      hsl(0, 0%, 100%) 0%,
+      hsl(220, 14%, 98%) 100%
+    );
+    --gradient-hero: linear-gradient(
+      135deg,
+      hsl(220, 20%, 98%) 0%,
+      hsl(272, 40%, 94%) 100%
+    );
+
     --shadow-sm: 0 1px 2px 0 hsl(220 20% 15% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(220 20% 15% / 0.1), 0 2px 4px -2px hsl(220 20% 15% / 0.1);
-    --shadow-lg: 0 10px 15px -3px hsl(220 20% 15% / 0.1), 0 4px 6px -4px hsl(220 20% 15% / 0.1);
-    --shadow-hover: 0 20px 25px -5px hsl(220 20% 15% / 0.1), 0 8px 10px -6px hsl(220 20% 15% / 0.1);
-    
+    --shadow-md: 0 4px 6px -1px hsl(220 20% 15% / 0.1),
+      0 2px 4px -2px hsl(220 20% 15% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(220 20% 15% / 0.1),
+      0 4px 6px -4px hsl(220 20% 15% / 0.1);
+    --shadow-hover: 0 20px 25px -5px hsl(220 20% 15% / 0.1),
+      0 8px 10px -6px hsl(220 20% 15% / 0.1);
+
     --transition-base: all 0.2s ease-in-out;
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -65,9 +82,10 @@
     --popover: 220 20% 12%;
     --popover-foreground: 220 14% 96%;
 
-    --primary: 168 60% 50%;
+    /* Primary in dark mode: same purple, slightly lighter on hover */
+    --primary: 272 89% 50%;
     --primary-foreground: 220 20% 10%;
-    --primary-hover: 168 60% 55%;
+    --primary-hover: 272 89% 60%;
 
     --secondary: 220 20% 18%;
     --secondary-foreground: 220 14% 96%;
@@ -83,9 +101,13 @@
 
     --border: 220 20% 20%;
     --input: 220 20% 20%;
-    --ring: 168 60% 50%;
+    --ring: 272 89% 50%;
 
-    --gradient-hero: linear-gradient(135deg, hsl(220, 20%, 12%) 0%, hsl(168, 20%, 15%) 100%);
+    --gradient-hero: linear-gradient(
+      135deg,
+      hsl(220, 20%, 12%) 0%,
+      hsl(272, 25%, 18%) 100%
+    );
   }
 }
 
@@ -99,7 +121,12 @@
     font-family: 'DM Sans', sans-serif;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-semibold tracking-tight;
   }
 }
