@@ -5,6 +5,7 @@ import ResumeAnalysis from "./pages/ResumeAnalysis";
 import ATSChecker from "./pages/ATSChecker";
 import ResourcesResumeWriting from "./pages/ResourcesResumeWriting";
 import ResourcesInterviewPrep from "./pages/ResourcesInterviewPrep";
+import ReactConceptsPage from "./routes/interview/ReactConceptsPage";
 import ResourcesCoverLetter from "./pages/ResourcesCoverLetter";
 import ResourcesRoadmap from "./pages/ResourcesRoadmap";
 import Jobs from "./pages/Jobs";
@@ -22,7 +23,10 @@ const App = () => (
         <Route path="/resume-analysis" element={<ResumeAnalysis />} />
         <Route path="/ats-checker" element={<ATSChecker />} />
         <Route path="/resources/resume-writing" element={<ResourcesResumeWriting />} />
+        {/* interview Prep & routes for each concepts */}
         <Route path="/resources/interview-prep" element={<ResourcesInterviewPrep />} />
+        <Route path="/resources/interview-prep/react-concepts" element={<ReactConceptsPage/>}></Route>
+
         <Route path="/resources/cover-letter" element={<ResourcesCoverLetter />} />
         <Route path="/resources/roadmap" element={<ResourcesRoadmap />} />
         <Route path="/jobs" element={<Jobs />} />

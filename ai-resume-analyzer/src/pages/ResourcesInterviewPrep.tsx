@@ -1,31 +1,112 @@
+import { useMemo, useState } from "react";
 import Layout from "@/components/Layout";
+import { Search } from "lucide-react";
+import { Link } from "react-router-dom";
+
+type ConceptCard = {
+  id: string;
+  title: string;
+  subtitle: string;
+  path: string;
+  tags: string[];
+};
+
+const concepts: ConceptCard[] = [
+  {
+    id: "react-concepts",
+    title: "React Concepts",
+    subtitle: "Core concepts & interview questions",
+    path: "/resources/interview-prep/react-concepts",
+    tags: ["react", "frontend", "javascript"],
+  },
+  {
+    id: "nextjs-15-concepts",
+    title: "Next.js 15 Concepts",
+    subtitle: "Routing, data fetching, app router",
+    path: "/resources/interview-prep/nextjs-15-concepts",
+    tags: ["nextjs", "react", "fullstack"],
+  },
+  // add more later
+];
 
 const ResourcesInterviewPrep = () => {
+  const [query, setQuery] = useState("");
+
+  const filteredConcepts = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return concepts;
+    return concepts.filter((c) => {
+      return (
+        c.title.toLowerCase().includes(q) ||
+        c.subtitle.toLowerCase().includes(q) ||
+        c.tags.some((t) => t.toLowerCase().includes(q))
+      );
+    });
+  }, [query]);
+
   return (
     <Layout>
       <div className="section-container py-12">
-        <div className="mx-auto max-w-4xl">
-          <h1 className="text-3xl font-bold text-foreground sm:text-4xl">
-            Interview Prep Resources
-          </h1>
-          <p className="mt-4 text-muted-foreground">
-            Practice questions, frameworks, and tips to help you perform
-            confidently in interviews.
-          </p>
+        <div className="mx-auto max-w-5xl">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-foreground sm:text-4xl">
+              Interview Prep
+            </h1>
+            <p className="mt-3 text-muted-foreground">
+              Deep-dive notes, concepts, and curated Q&amp;A for popular tech
+              stacks and languages.
+            </p>
+          </div>
 
-          <div className="mt-8 space-y-4">
-            <div className="card-base">
-              <h2 className="text-lg font-semibold">Common Interview Questions</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Prepare concise, structured answers to the most frequently asked questions.
-              </p>
+          {/* Search bar */}
+          <div className="mb-8 flex justify-center">
+            <div className="relative w-full max-w-xl">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search concepts, stacks, or topics..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="input-base h-11 pl-9 text-sm"
+              />
             </div>
-            <div className="card-base">
-              <h2 className="text-lg font-semibold">STAR Method</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Learn how to use Situation–Task–Action–Result to tell strong stories.
+          </div>
+
+          {/* Cards grid – 3 per row on desktop */}
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredConcepts.length === 0 && (
+              <p className="col-span-full text-center text-sm text-muted-foreground">
+                No concepts found for “{query}”. Try a different keyword.
               </p>
-            </div>
+            )}
+
+            {filteredConcepts.map((concept) => (
+              <Link
+                key={concept.id}
+                to={concept.path}
+                className="card-base flex h-40 flex-col justify-between transition-transform hover:-translate-y-1 hover:shadow-hover"
+              >
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground">
+                    {concept.title}
+                  </h2>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {concept.subtitle}
+                  </p>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-1">
+                  {concept.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-muted-foreground"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </div>
