@@ -62,7 +62,7 @@ const Index = () => {
         <div className="section-container">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
-              Everything you need to succeed
+              Beat the ATS. Impress the Recruiter
             </h2>
             <p className="mt-4 text-muted-foreground">
               Our comprehensive tools help you optimize your resume and stand out from the competition.
@@ -92,14 +92,11 @@ const Index = () => {
         <div className="section-container">
           <div className="rounded-2xl bg-gradient-to-r from-primary/10 to-accent/10 p-8 text-center sm:p-12 lg:p-16">
             <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
-              Ready to optimize your resume?
+              Match Your Resume to the Job Before the Recruiter Does
             </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-              Join thousands of job seekers who have improved their chances with our AI-powered analysis.
-            </p>
             <div className="mt-8">
               <Link to="/resume-analysis" className="btn-primary inline-flex items-center gap-2">
-                Get Started Free
+                Get Started Now
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>

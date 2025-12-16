@@ -21,14 +21,14 @@ const Header = () => {
       <div className="section-container">
         <nav className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className="flex items-center gap-2 text-xl font-bold text-foreground transition-opacity hover:opacity-80"
           >
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <span className="text-sm font-bold text-primary-foreground">R</span>
+              <span className="text-sm font-bold text-primary-foreground">K</span>
             </div>
-            <span>ResumeAI</span>
+            <span>KeyWorded</span>
           </Link>
 
           {/* Desktop Navigation */}

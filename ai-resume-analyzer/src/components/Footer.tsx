@@ -9,9 +9,9 @@ const Footer = () => {
           <div className="space-y-4">
             <Link to="/" className="flex items-center gap-2 text-xl font-bold text-foreground">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                <span className="text-sm font-bold text-primary-foreground">R</span>
+                <span className="text-sm font-bold text-primary-foreground">K</span>
               </div>
-              <span>ResumeAI</span>
+              <span>KeyWorded</span>
             </Link>
             <p className="text-sm text-muted-foreground">
               AI-powered resume analysis to help you land your dream job.
@@ -66,14 +66,14 @@ const Footer = () => {
           <div>
             <h4 className="mb-4 text-sm font-semibold text-foreground">Contact</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>hello@resumeai.com</li>
-              <li>+1 (555) 123-4567</li>
+              <li>atharvanarvekar269@gmai.com</li>
+              <li>+987654321</li>
             </ul>
           </div>
         </div>
 
         <div className="mt-12 border-t border-border pt-8 text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} ResumeAI. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} KeyWorded. All rights reserved.</p>
         </div>
       </div>
     </footer>
