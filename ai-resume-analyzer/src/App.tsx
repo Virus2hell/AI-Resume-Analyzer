@@ -4,6 +4,10 @@ import Index from "./pages/Index";
 import ResumeAnalysis from "./pages/ResumeAnalysis";
 import ATSChecker from "./pages/ATSChecker";
 import Resources from "./pages/Resources";
+import ResourcesResumeWriting from "./pages/ResourcesResumeWriting";
+import ResourcesInterviewPrep from "./pages/ResourcesInterviewPrep";
+import ResourcesCoverLetter from "./pages/ResourcesCoverLetter";
+import ResourcesRoadmap from "./pages/ResourcesRoadmap";
 import Jobs from "./pages/Jobs";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -19,6 +23,11 @@ const App = () => (
         <Route path="/resume-analysis" element={<ResumeAnalysis />} />
         <Route path="/ats-checker" element={<ATSChecker />} />
         <Route path="/resources" element={<Resources />} />
+        <Route path="/resources" element={<Resources />} />
+        <Route path="/resources/resume-writing" element={<ResourcesResumeWriting />} />
+        <Route path="/resources/interview-prep" element={<ResourcesInterviewPrep />} />
+        <Route path="/resources/cover-letter" element={<ResourcesCoverLetter />} />
+        <Route path="/resources/roadmap" element={<ResourcesRoadmap />} />
         <Route path="/jobs" element={<Jobs />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
