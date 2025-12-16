@@ -6,7 +6,7 @@ const navItems = [
   { name: "Home", path: "/" },
   { name: "ATS Score Checker", path: "/ats-checker" },
   { name: "Resume Analysis", path: "/resume-analysis" },
-  // Resources handled separately as dropdown
+  // Resources dropdown will be inserted here
   { name: "Jobs", path: "/jobs" },
   { name: "About Us", path: "/about" },
   { name: "Contact Us", path: "/contact" },
@@ -43,7 +43,7 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden items-center gap-1 lg:flex">
-            {navItems.map((item) => (
+            {navItems.slice(0, 3).map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
@@ -55,11 +55,10 @@ const Header = () => {
               </Link>
             ))}
 
-            {/* Resources dropdown */}
+            {/* Resources dropdown (before Jobs) */}
             <div
               className="relative"
               onMouseEnter={() => setIsResourcesOpen(true)}
-              onMouseLeave={() => setIsResourcesOpen(false)}
             >
               <button
                 type="button"
@@ -73,7 +72,11 @@ const Header = () => {
               </button>
 
               {isResourcesOpen && (
-                <div className="absolute right-0 mt-2 w-56 rounded-xl bg-card p-2 shadow-lg border border-border animate-fade-in">
+                <div
+                  className="absolute left-0 mt-2 w-56 rounded-xl bg-card p-2 shadow-lg border border-border animate-fade-in"
+                  onMouseEnter={() => setIsResourcesOpen(true)}
+                  onMouseLeave={() => setIsResourcesOpen(false)}
+                >
                   {resourceItems.map((item) => (
                     <Link
                       key={item.path}
@@ -83,6 +86,7 @@ const Header = () => {
                           ? "bg-primary/10 text-primary"
                           : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                       }`}
+                      onClick={() => setIsResourcesOpen(false)}
                     >
                       {item.name}
                     </Link>
@@ -90,6 +94,18 @@ const Header = () => {
                 </div>
               )}
             </div>
+
+            {navItems.slice(3).map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`nav-link ${
+                  location.pathname === item.path ? "active" : ""
+                }`}
+              >
+                {item.name}
+              </Link>
+            ))}
           </div>
 
           {/* CTA Button - Desktop */}

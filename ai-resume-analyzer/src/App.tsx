@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import ResumeAnalysis from "./pages/ResumeAnalysis";
 import ATSChecker from "./pages/ATSChecker";
-import Resources from "./pages/Resources";
 import ResourcesResumeWriting from "./pages/ResourcesResumeWriting";
 import ResourcesInterviewPrep from "./pages/ResourcesInterviewPrep";
 import ResourcesCoverLetter from "./pages/ResourcesCoverLetter";
@@ -22,8 +21,6 @@ const App = () => (
         <Route path="/" element={<Index />} />
         <Route path="/resume-analysis" element={<ResumeAnalysis />} />
         <Route path="/ats-checker" element={<ATSChecker />} />
-        <Route path="/resources" element={<Resources />} />
-        <Route path="/resources" element={<Resources />} />
         <Route path="/resources/resume-writing" element={<ResourcesResumeWriting />} />
         <Route path="/resources/interview-prep" element={<ResourcesInterviewPrep />} />
         <Route path="/resources/cover-letter" element={<ResourcesCoverLetter />} />
