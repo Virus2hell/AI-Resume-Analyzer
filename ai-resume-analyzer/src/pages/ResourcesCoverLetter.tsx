@@ -6,10 +6,17 @@ import jsPDF from "jspdf";
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
+type Tone = "formal" | "casual" | "concise";
+type Length = "short" | "long";
+
 const ResourcesCoverLetter = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [resumeText, setResumeText] = useState("");
   const [jobDescription, setJobDescription] = useState("");
+  const [tone, setTone] = useState<Tone>("concise");
+  const [lengthPref, setLengthPref] = useState<Length>("long");
+  const [language, setLanguage] = useState<string>("English"); // default English
+
   const [isGenerating, setIsGenerating] = useState(false);
   const [coverLetter, setCoverLetter] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -18,7 +25,6 @@ const ResourcesCoverLetter = () => {
     if (file.type.startsWith("text/")) {
       return await file.text();
     }
-    // basic fallback if not txt; you can plug real PDF/DOCX parsing later
     return `File name: ${file.name}, type: ${file.type}\n\n(Full parsing not implemented; please also paste your resume text if needed.)`;
   };
 
@@ -35,13 +41,17 @@ const ResourcesCoverLetter = () => {
       setResumeText(text);
     } catch (err) {
       console.error("Resume file read error:", err);
-      setError("Could not read resume file. Please try another file or paste text manually.");
+      setError(
+        "Could not read resume file. Please try another file or paste text manually."
+      );
     }
   };
 
   const handleGenerate = async () => {
     if (!resumeText.trim() || !jobDescription.trim()) {
-      setError("Please upload a resume (or paste its text) and enter a job description.");
+      setError(
+        "Please upload a resume (or paste its text) and enter a job description."
+      );
       return;
     }
 
@@ -53,7 +63,13 @@ const ResourcesCoverLetter = () => {
       const res = await fetch(`${API_BASE_URL}/api/generate-cover-letter`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resumeText, jobDescription }),
+        body: JSON.stringify({
+          resumeText,
+          jobDescription,
+          tone,
+          length: lengthPref,
+          language: language || "English",
+        }),
       });
 
       const data = await res.json();
@@ -101,6 +117,20 @@ const ResourcesCoverLetter = () => {
     doc.save("cover-letter.pdf");
   };
 
+  const toneButtonClasses = (value: Tone) =>
+    `rounded-full px-4 py-2 text-sm font-medium border ${
+      tone === value
+        ? "bg-primary text-primary-foreground border-primary shadow-sm"
+        : "bg-secondary text-foreground border-border hover:bg-secondary/80"
+    }`;
+
+  const lengthButtonClasses = (value: Length) =>
+    `rounded-full px-4 py-2 text-sm font-medium border ${
+      lengthPref === value
+        ? "bg-primary text-primary-foreground border-primary shadow-sm"
+        : "bg-secondary text-foreground border-border hover:bg-secondary/80"
+    }`;
+
   return (
     <Layout>
       <div className="section-container py-12">
@@ -110,13 +140,13 @@ const ResourcesCoverLetter = () => {
               AI Cover Letter Generator
             </h1>
             <p className="mt-4 text-muted-foreground">
-              Upload your resume, paste the job description, and get a tailored,
-              ATS-friendly cover letter you can download as PDF.
+              Upload your resume, choose tone, length, and language, then paste
+              the job description to get a tailored, ATS-friendly cover letter.
             </p>
           </div>
 
           <div className="grid gap-8 md:grid-cols-2">
-            {/* Left: Resume + JD inputs */}
+            {/* Left: inputs */}
             <div className="space-y-6">
               {/* Resume upload */}
               <div className="card-base">
@@ -147,22 +177,107 @@ const ResourcesCoverLetter = () => {
                 />
               </div>
 
-              {/* Job description */}
-              <div className="card-base">
-                <h2 className="mb-3 text-lg font-semibold text-foreground">
-                  Job Description
-                </h2>
-                <textarea
-                  className="input-base min-h-[180px]"
-                  placeholder="Paste the full job description here..."
-                  value={jobDescription}
-                  onChange={(e) => setJobDescription(e.target.value)}
-                />
+              {/* Job description + preferences */}
+              <div className="card-base space-y-4">
+                <div>
+                  <h2 className="mb-1 text-lg font-semibold text-foreground">
+                    Job Description
+                  </h2>
+                  <textarea
+                    className="input-base min-h-[150px]"
+                    placeholder="Paste the full job description here..."
+                    value={jobDescription}
+                    onChange={(e) => setJobDescription(e.target.value)}
+                  />
+                </div>
+
+                {/* Preferences */}
+                <div className="space-y-4">
+                  {/* Language */}
+                  <div>
+                    <p className="mb-1 text-sm font-semibold text-muted-foreground">
+                      Language
+                    </p>
+                    <div className="relative">
+                      <select
+                        value={language}
+                        onChange={(e) => setLanguage(e.target.value)}
+                        className="input-base h-11 pr-8 text-sm"
+                      >
+                        <option value="English">English (default)</option>
+                        <option value="Spanish">Spanish</option>
+                        <option value="German">German</option>
+                        <option value="French">French</option>
+                        <option value="Japanese">Japanese</option>
+                        <option value="Mandarin Chinese">
+                          Mandarin Chinese
+                        </option>
+                      </select>
+                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                        ▾
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Tone */}
+                  <div>
+                    <p className="mb-1 text-sm font-semibold text-muted-foreground">
+                      Tone
+                    </p>
+                    <div className="flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        className={toneButtonClasses("formal")}
+                        onClick={() => setTone("formal")}
+                      >
+                        Formal
+                      </button>
+                      <button
+                        type="button"
+                        className={toneButtonClasses("casual")}
+                        onClick={() => setTone("casual")}
+                      >
+                        Casual
+                      </button>
+                      <button
+                        type="button"
+                        className={toneButtonClasses("concise")}
+                        onClick={() => setTone("concise")}
+                      >
+                        Concise
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Length */}
+                  <div>
+                    <p className="mb-1 text-sm font-semibold text-muted-foreground">
+                      Length
+                    </p>
+                    <div className="flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        className={lengthButtonClasses("short")}
+                        onClick={() => setLengthPref("short")}
+                      >
+                        Short
+                      </button>
+                      <button
+                        type="button"
+                        className={lengthButtonClasses("long")}
+                        onClick={() => setLengthPref("long")}
+                      >
+                        Long
+                      </button>
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Short (around 250 words) / Long (around 350 words)
+                    </p>
+                  </div>
+                </div>
               </div>
 
-              {error && (
-                <p className="text-sm text-destructive">{error}</p>
-              )}
+              {error && <p className="text-sm text-destructive">{error}</p>}
 
               <button
                 onClick={handleGenerate}
@@ -204,7 +319,7 @@ const ResourcesCoverLetter = () => {
                 <div className="min-h-[260px] rounded-lg border border-dashed border-border bg-background px-4 py-3 text-sm text-muted-foreground whitespace-pre-line">
                   {coverLetter
                     ? coverLetter
-                    : "Your AI-generated cover letter will appear here after you click “Generate Cover Letter”."}
+                    : 'Your AI-generated cover letter will appear here after you click "Generate Cover Letter".'}
                 </div>
               </div>
             </div>

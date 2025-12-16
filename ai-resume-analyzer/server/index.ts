@@ -112,9 +112,12 @@ Return strictly this JSON shape:
 
 app.post("/api/generate-cover-letter", async (req, res) => {
   try {
-    const { resumeText, jobDescription } = req.body as {
+    const { resumeText, jobDescription, tone, length, language } = req.body as {
       resumeText: string;
       jobDescription: string;
+      tone?: "formal" | "casual" | "concise";
+      length?: "short" | "long";
+      language?: string;
     };
 
     if (!resumeText?.trim() || !jobDescription?.trim()) {
@@ -123,15 +126,35 @@ app.post("/api/generate-cover-letter", async (req, res) => {
         .json({ error: "Missing resumeText or jobDescription" });
     }
 
+    const toneText =
+      tone === "formal"
+        ? "Use a formal, professional tone."
+        : tone === "casual"
+        ? "Use a friendly, conversational tone while staying professional."
+        : "Use a concise, to‑the‑point professional tone.";
+
+    const lengthText =
+      length === "short"
+        ? "Aim for around 250 words."
+        : "Aim for around 350 words.";
+
+    const languageText = language?.trim()
+      ? `Write the entire cover letter in ${language}.`
+      : "Write the cover letter in English.";
+
     const prompt = `
 You are an expert career coach and professional cover letter writer.
 
 Given the user's resume and the target job description, write a polished, ATS-friendly cover letter.
 
-Requirements:
+Style requirements:
+- ${toneText}
+- ${lengthText}
+- ${languageText}
+
+Other requirements:
 - Use the same person details (name, email, phone, LinkedIn, portfolio) as in the resume when they are available.
 - If any detail is missing, leave a clearly marked placeholder like "[Your Name]" or "[Your Email]" instead of inventing data.
-- Match the tone to a mid‑level software/IT professional unless the resume suggests otherwise.
 - Keep it to 3–5 concise paragraphs.
 - Return ONLY the final cover letter text, no markdown, no JSON, no explanations.
 
@@ -156,7 +179,6 @@ ${jobDescription.slice(0, 4000)}
         .json({ error: "Empty response from Groq for cover letter" });
     }
 
-    // Just return raw text
     return res.json({ coverLetter: content.trim() });
   } catch (error) {
     console.error("Groq cover letter error:", error);
