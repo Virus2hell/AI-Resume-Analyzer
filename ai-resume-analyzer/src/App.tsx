@@ -6,6 +6,7 @@ import ATSChecker from "./pages/ATSChecker";
 import ResourcesResumeWriting from "./pages/ResourcesResumeWriting";
 import ResourcesInterviewPrep from "./pages/ResourcesInterviewPrep";
 import ReactConceptsPage from "./routes/interview/ReactConceptsPage";
+import Nextjs15ConceptsPage from "./routes/interview/Nextjs15ConceptsPage";
 import ResourcesCoverLetter from "./pages/ResourcesCoverLetter";
 import ResourcesRoadmap from "./pages/ResourcesRoadmap";
 import Jobs from "./pages/Jobs";
@@ -26,6 +27,7 @@ const App = () => (
         {/* interview Prep & routes for each concepts */}
         <Route path="/resources/interview-prep" element={<ResourcesInterviewPrep />} />
         <Route path="/resources/interview-prep/react-concepts" element={<ReactConceptsPage/>}></Route>
+        <Route path="/resources/interview-prep/nextjs-15-concepts" element={<Nextjs15ConceptsPage/>}></Route>
 
         <Route path="/resources/cover-letter" element={<ResourcesCoverLetter />} />
         <Route path="/resources/roadmap" element={<ResourcesRoadmap />} />
