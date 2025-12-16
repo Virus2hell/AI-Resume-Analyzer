@@ -1,30 +1,74 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, ChevronDown } from "lucide-react";
+import {
+  Menu,
+  X,
+  ChevronDown,
+  FileText,
+  MessageCircle,
+  PenSquare,
+  Map,
+  Gauge,
+} from "lucide-react";
 
 const navItems = [
   { name: "Home", path: "/" },
-  { name: "ATS Score Checker", path: "/ats-checker" },
-  { name: "Resume Analysis", path: "/resume-analysis" },
-  // Resources dropdown will be inserted here
+  // Tools dropdown will be inserted here
+  // Resources dropdown will also be inserted here
   { name: "Jobs", path: "/jobs" },
   { name: "About Us", path: "/about" },
   { name: "Contact Us", path: "/contact" },
 ];
 
+const toolItems = [
+  { name: "Resume Analysis", path: "/resume-analysis", icon: FileText },
+  { name: "ATS Score Checker", path: "/ats-checker", icon: Gauge },
+];
+
 const resourceItems = [
-  { name: "Resume Writing", path: "/resources/resume-writing" },
-  { name: "Interview Prep", path: "/resources/interview-prep" },
-  { name: "Cover Letter", path: "/resources/cover-letter" },
-  { name: "Roadmap", path: "/resources/roadmap" },
+  { name: "Resume Writing", path: "/resources/resume-writing", icon: FileText },
+  {
+    name: "Interview Prep",
+    path: "/resources/interview-prep",
+    icon: MessageCircle,
+  },
+  { name: "Cover Letter", path: "/resources/cover-letter", icon: PenSquare },
+  { name: "Roadmap", path: "/resources/roadmap", icon: Map },
 ];
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [isResourcesOpen, setIsResourcesOpen] = useState(false);
+
+  const toolsTimeoutRef = useRef<number | null>(null);
+  const resourcesTimeoutRef = useRef<number | null>(null);
+
   const location = useLocation();
 
+  const isToolPath =
+    location.pathname === "/resume-analysis" ||
+    location.pathname === "/ats-checker";
   const isResourcePath = location.pathname.startsWith("/resources");
+
+  const openWithDelay = (
+    setter: (v: boolean) => void,
+    timeoutRef: React.MutableRefObject<number | null>,
+    delay = 100
+  ) => {
+    if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
+    timeoutRef.current = window.setTimeout(() => setter(true), delay);
+  };
+
+  const closeWithDelay = (
+    setter: (v: boolean) => void,
+    timeoutRef: React.MutableRefObject<number | null>,
+    delay = 150
+  ) => {
+    if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
+    timeoutRef.current = window.setTimeout(() => setter(false), delay);
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
@@ -43,22 +87,67 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden items-center gap-1 lg:flex">
-            {navItems.slice(0, 3).map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`nav-link ${
-                  location.pathname === item.path ? "active" : ""
-                }`}
-              >
-                {item.name}
-              </Link>
-            ))}
+            {/* Home */}
+            <Link
+              to="/"
+              className={`nav-link ${
+                location.pathname === "/" ? "active" : ""
+              }`}
+            >
+              Home
+            </Link>
 
-            {/* Resources dropdown (before Jobs) */}
+            {/* Tools dropdown with delay */}
             <div
               className="relative"
-              onMouseEnter={() => setIsResourcesOpen(true)}
+              onMouseEnter={() =>
+                openWithDelay(setIsToolsOpen, toolsTimeoutRef, 80)
+              }
+              onMouseLeave={() =>
+                closeWithDelay(setIsToolsOpen, toolsTimeoutRef, 200)
+              }
+            >
+              <button
+                type="button"
+                className={`nav-link flex items-center gap-1 ${
+                  isToolPath ? "active" : ""
+                }`}
+                onClick={() => setIsToolsOpen((prev) => !prev)}
+              >
+                Tools
+                <ChevronDown className="h-4 w-4" />
+              </button>
+
+              {isToolsOpen && (
+                <div className="absolute left-0 mt-2 w-64 rounded-xl bg-card p-2 shadow-lg border border-border animate-fade-in">
+                  {toolItems.map((item) => (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                        location.pathname === item.path
+                          ? "bg-primary/10 text-primary"
+                          : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                      }`}
+                      onClick={() => setIsToolsOpen(false)}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.name}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Resources dropdown with delay */}
+            <div
+              className="relative"
+              onMouseEnter={() =>
+                openWithDelay(setIsResourcesOpen, resourcesTimeoutRef, 80)
+              }
+              onMouseLeave={() =>
+                closeWithDelay(setIsResourcesOpen, resourcesTimeoutRef, 200)
+              }
             >
               <button
                 type="button"
@@ -72,30 +161,28 @@ const Header = () => {
               </button>
 
               {isResourcesOpen && (
-                <div
-                  className="absolute left-0 mt-2 w-56 rounded-xl bg-card p-2 shadow-lg border border-border animate-fade-in"
-                  onMouseEnter={() => setIsResourcesOpen(true)}
-                  onMouseLeave={() => setIsResourcesOpen(false)}
-                >
+                <div className="absolute left-0 mt-2 w-64 rounded-xl bg-card p-2 shadow-lg border border-border animate-fade-in">
                   {resourceItems.map((item) => (
                     <Link
                       key={item.path}
                       to={item.path}
-                      className={`block rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                      className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                         location.pathname === item.path
                           ? "bg-primary/10 text-primary"
                           : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                       }`}
                       onClick={() => setIsResourcesOpen(false)}
                     >
-                      {item.name}
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.name}</span>
                     </Link>
                   ))}
                 </div>
               )}
             </div>
 
-            {navItems.slice(3).map((item) => (
+            {/* Remaining nav items: Jobs, About, Contact */}
+            {navItems.slice(1).map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
@@ -125,11 +212,69 @@ const Header = () => {
           </button>
         </nav>
 
-        {/* Mobile Navigation */}
+        {/* Mobile Navigation (unchanged) */}
         {isMobileMenuOpen && (
           <div className="animate-fade-in border-t border-border py-4 lg:hidden">
             <div className="flex flex-col gap-2">
-              {navItems.map((item) => (
+              {/* Home */}
+              <Link
+                to="/"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
+                  location.pathname === "/"
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                }`}
+              >
+                Home
+              </Link>
+
+              {/* Tools */}
+              <div className="mt-2 border-t border-border pt-2">
+                <p className="px-4 pb-1 text-xs font-semibold uppercase text-muted-foreground">
+                  Tools
+                </p>
+                {toolItems.map((item) => (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
+                      location.pathname === item.path
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    }`}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.name}</span>
+                  </Link>
+                ))}
+              </div>
+
+              {/* Resources */}
+              <div className="mt-2 border-t border-border pt-2">
+                <p className="px-4 pb-1 text-xs font-semibold uppercase text-muted-foreground">
+                  Resources
+                </p>
+                {resourceItems.map((item) => (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
+                      location.pathname === item.path
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    }`}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.name}</span>
+                  </Link>
+                ))}
+              </div>
+
+              {/* Jobs, About, Contact */}
+              {navItems.slice(1).map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
@@ -143,27 +288,6 @@ const Header = () => {
                   {item.name}
                 </Link>
               ))}
-
-              {/* Resources section in mobile menu */}
-              <div className="mt-2 border-t border-border pt-2">
-                <p className="px-4 pb-1 text-xs font-semibold uppercase text-muted-foreground">
-                  Resources
-                </p>
-                {resourceItems.map((item) => (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={`rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
-                      location.pathname === item.path
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                    }`}
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-              </div>
 
               <Link
                 to="/resume-analysis"
