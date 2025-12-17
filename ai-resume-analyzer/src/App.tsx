@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import ResumeAnalysis from "./pages/ResumeAnalysis";
+import ResumeAnalysisReport from "@/pages/ResumeAnalysisReport";
 import ATSChecker from "./pages/ATSChecker";
 import ResourcesResumeWriting from "./pages/ResourcesResumeWriting";
 import ResourcesInterviewPrep from "./pages/ResourcesInterviewPrep";
@@ -21,13 +22,16 @@ const App = () => (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Index />} />
+        {/* resume analysis according to JD */}
         <Route path="/resume-analysis" element={<ResumeAnalysis />} />
+        <Route path="/resume-analysis/report" element={<ResumeAnalysisReport />} />
+        {/* ats score checker without resume  */}
         <Route path="/ats-checker" element={<ATSChecker />} />
         <Route path="/resources/resume-writing" element={<ResourcesResumeWriting />} />
         {/* interview Prep & routes for each concepts */}
         <Route path="/resources/interview-prep" element={<ResourcesInterviewPrep />} />
-        <Route path="/resources/interview-prep/react-concepts" element={<ReactConceptsPage/>}></Route>
-        <Route path="/resources/interview-prep/nextjs-15-concepts" element={<Nextjs15ConceptsPage/>}></Route>
+        <Route path="/resources/interview-prep/react-concepts" element={<ReactConceptsPage/>} />
+        <Route path="/resources/interview-prep/nextjs-15-concepts" element={<Nextjs15ConceptsPage/>} />
 
         <Route path="/resources/cover-letter" element={<ResourcesCoverLetter />} />
         <Route path="/resources/roadmap" element={<ResourcesRoadmap />} />
