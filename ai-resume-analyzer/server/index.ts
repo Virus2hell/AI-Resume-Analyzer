@@ -4,11 +4,11 @@ import cors from "cors";
 import Groq from "groq-sdk";
 import dotenv from "dotenv";
 
+dotenv.config();
+
 const app = express();
 app.use(cors());
-app.use(express.json());
-
-dotenv.config();
+app.use(express.json({ limit: "10mb" }));
 
 const apiKey = process.env.GROQ_API_KEY;
 
@@ -28,6 +28,9 @@ interface AnalysisResult {
   recommendations: string[];
 }
 
+/**
+ * Existing resume vs JD analysis
+ */
 app.post("/api/analyze-resume", async (req: Request, res: Response) => {
   try {
     const { resumeText, jobDescription } = req.body as {
@@ -91,7 +94,7 @@ Return strictly this JSON shape:
         .json({ error: "Groq response did not contain JSON" });
     }
 
-    let parsed;
+    let parsed: AnalysisResult;
     try {
       parsed = JSON.parse(jsonMatch[0]);
     } catch (e) {
@@ -110,7 +113,10 @@ Return strictly this JSON shape:
   }
 });
 
-app.post("/api/generate-cover-letter", async (req, res) => {
+/**
+ * Cover letter generation
+ */
+app.post("/api/generate-cover-letter", async (req: Request, res: Response) => {
   try {
     const { resumeText, jobDescription, tone, length, language } = req.body as {
       resumeText: string;
@@ -131,7 +137,7 @@ app.post("/api/generate-cover-letter", async (req, res) => {
         ? "Use a formal, professional tone."
         : tone === "casual"
         ? "Use a friendly, conversational tone while staying professional."
-        : "Use a concise, to‑the‑point professional tone.";
+        : "Use a concise, to-the-point professional tone.";
 
     const lengthText =
       length === "short"
@@ -188,6 +194,71 @@ ${jobDescription.slice(0, 4000)}
   }
 });
 
+/**
+ * NEW: ATS-style resume-only analysis
+ * Returns ATS score + detailed feedback and structure analysis
+ */
+app.post("/api/ats-analyze-resume", async (req: Request, res: Response) => {
+  try {
+    const { resumeText } = req.body as { resumeText: string };
+
+    if (!resumeText?.trim()) {
+      return res.status(400).json({ error: "Missing resumeText" });
+    }
+
+    const prompt = `
+You are an industry-level HR and ATS expert who evaluates resumes for software / IT roles.
+
+Analyze the following resume and produce a structured JSON report with these exact top-level keys:
+
+- "ats_score": number from 0 to 100 (how well this resume is likely to pass an ATS screen)
+- "ats_score_explanation": short string explanation of the score
+- "suggestions": array of strings (concrete suggestions to improve content, keywords, clarity)
+- "formatting_feedback": array of strings (spacing, font, bullet points, consistency, section ordering)
+- "ats_friendly_format_tips": array of strings (tips for ATS-safe formatting and layout)
+- "resume_structure_analysis": array of strings (what sections exist or are missing, how strong each section is)
+
+Constraints:
+- Respond ONLY with valid JSON, no markdown, no backticks, no extra commentary.
+- Do not invent personal data (phone, email, links) that are not clearly present.
+
+RESUME:
+${resumeText.slice(0, 8000)}
+`.trim();
+
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      temperature: 0.2,
+      max_tokens: 900,
+      response_format: { type: "json_object" },
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    if (!content) {
+      return res
+        .status(500)
+        .json({ error: "Empty response from Groq for ATS analysis" });
+    }
+
+    let parsed;
+    try {
+      parsed = JSON.parse(content);
+    } catch (err) {
+      console.error("JSON parse error from Groq:", err, content);
+      return res
+        .status(500)
+        .json({ error: "Failed to parse ATS analysis. Please try again." });
+    }
+
+    return res.json(parsed);
+  } catch (error) {
+    console.error("Groq ATS analysis error:", error);
+    return res
+      .status(500)
+      .json({ error: "Failed to analyze resume. Please try again." });
+  }
+});
 
 const PORT = Number(process.env.PORT) || 4000;
 app.listen(PORT, () => {
