@@ -1,3 +1,4 @@
+
 // server/index.ts
 import express, { Request, Response } from "express";
 import cors from "cors";
@@ -29,9 +30,8 @@ interface AnalysisResult {
 }
 
 /**
- * Existing resume vs JD analysis
+ * Detailed resume vs JD analysis
  */
-
 app.post(
   "/api/detailed-resume-analysis",
   async (req: Request, res: Response) => {
@@ -57,7 +57,7 @@ Analyze the following resume AGAINST THE ENTIRE job posting, including:
 Your goals:
 1) Extract all important skills and keywords from the job description, even if they are only mentioned in responsibilities, tools, or narrative sections.
 2) Compare those skills with the resume and score match quality.
-3) Provide detailed, constructive feedback on content, skills, sections, and writing style.
+3) Provide detailed, constructive feedback on content, skills, sections, formatting, and writing style.
 4) Give precise grammar and spelling feedback with corrections.
 
 RESUME:
@@ -129,6 +129,17 @@ Return ONLY valid JSON using this exact shape:
       }
     ]
   },
+  "format": {
+    "description": string,
+    "dateFormattingStatus": "PASS" | "WARN" | "FAIL",
+    "resumeLengthScore": number,
+    "bulletPointScore": number,
+    "dateFormattingTip": string,
+    "resumeLengthSummary": string,
+    "resumeLengthProTip": string,
+    "bulletPointSummary": string,
+    "bulletPointSuggestions": string[]
+  },
   "sections": {
     "description": string,
     "totalRequired": number,
@@ -154,13 +165,14 @@ Important:
 - When extracting skills from the JD, look at ALL parts, especially "Key Responsibilities", "What you will do", "Day‑to‑day", and similar sections, not just the explicit "Skills" list.
 - For each hard or soft skill, set "source" to where it mainly came from in the JD (e.g., responsibilities vs skills).
 - For grammarIssues, ALWAYS include the original text from the resume, a corrected version, a short issueType, and a brief explanation.
+- In "format", evaluate date formats, overall resume length, and use of bullet points. Populate all fields with concise, specific text and at least one bulletPointSuggestions item when improvement is needed.
 - Respond ONLY with JSON, no markdown, no commentary, no backticks.
 `.trim();
 
       const completion = await groq.chat.completions.create({
         model: "llama-3.3-70b-versatile",
         temperature: 0.25,
-        max_tokens: 1500,
+        max_tokens: 1800,
         response_format: { type: "json_object" },
         messages: [{ role: "user", content: prompt }],
       });
@@ -172,7 +184,7 @@ Important:
           .json({ error: "Empty response from Groq for detailed analysis" });
       }
 
-      let parsed;
+      let parsed: any;
       try {
         parsed = JSON.parse(content);
       } catch (err) {
@@ -191,6 +203,7 @@ Important:
     }
   }
 );
+
 
 /**
  * Cover letter generation

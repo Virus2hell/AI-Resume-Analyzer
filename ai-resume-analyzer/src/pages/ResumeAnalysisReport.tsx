@@ -27,7 +27,7 @@ type ContentBlock = {
   grammarIssues: {
     original: string;
     corrected: string;
-    issueType: "spelling" | "grammar" | "punctuation" | "word_choice";
+    issueType: "spelling" | "grammar" | "punctuation" | "word_choice" | string;
     explanation: string;
   }[];
 };
@@ -39,7 +39,8 @@ type SkillItem = {
     | "responsibilities"
     | "tools_section"
     | "summary"
-    | "other_jd_text";
+    | "other_jd_text"
+    | string;
   requiredLevel: number;
   resumeLevel: number;
   status: "missing" | "present";
@@ -51,6 +52,18 @@ type SkillsBlock = {
   softSkillsSummary: { missingCount: number; presentCount: number };
   hardSkills: SkillItem[];
   softSkills: SkillItem[];
+};
+
+type FormatBlock = {
+  description: string;
+  dateFormattingStatus: "PASS" | "WARN" | "FAIL" | string;
+  resumeLengthScore: number;
+  bulletPointScore: number;
+  dateFormattingTip: string;
+  resumeLengthSummary: string;
+  resumeLengthProTip: string;
+  bulletPointSummary: string;
+  bulletPointSuggestions: string[];
 };
 
 type SectionItem = {
@@ -79,6 +92,7 @@ type DetailedReport = {
   radar: Radar;
   content: ContentBlock;
   skills: SkillsBlock;
+  format?: FormatBlock; // guarded in UI
   sections: SectionsBlock;
   style: StyleBlock;
 };
@@ -170,10 +184,17 @@ const ResumeAnalysisReport = () => {
     addList(report.content.measurableSuggestions || []);
     if (report.content.grammarIssues?.length) {
       addSectionTitle("Spelling & Grammar Issues");
-      const issues = report.content.grammarIssues.map(
-        (g) =>
-          `${g.original}  →  ${g.corrected}  [${g.issueType}]  ${g.explanation}`
-      );
+      const issues = report.content.grammarIssues.map((g) => {
+        const corrected =
+          g.corrected && g.corrected.trim().length > 0
+            ? g.corrected
+            : "No change suggested.";
+        const explanation =
+          g.explanation && g.explanation.trim().length > 0
+            ? g.explanation
+            : "Minor stylistic improvement; not a strict error.";
+        return `${g.original}  →  ${corrected}  [${g.issueType || "info"}]  ${explanation}`;
+      });
       addList(issues);
     }
 
@@ -186,20 +207,35 @@ const ResumeAnalysisReport = () => {
     addParagraph(
       `Soft skills – missing: ${report.skills.softSkillsSummary.missingCount}, present: ${report.skills.softSkillsSummary.presentCount}`
     );
-
-    const hardTable = report.skills.hardSkills.map(
-      (s) =>
-        `${s.name} (from ${s.source}): required ${s.requiredLevel}, resume ${s.resumeLevel}, status ${s.status}`
-    );
     addSectionTitle("Hard Skills Detail");
-    addList(hardTable);
-
-    const softTable = report.skills.softSkills.map(
-      (s) =>
-        `${s.name} (from ${s.source}): required ${s.requiredLevel}, resume ${s.resumeLevel}, status ${s.status}`
+    addList(
+      report.skills.hardSkills.map(
+        (s) =>
+          `${s.name} (from ${s.source}): required ${s.requiredLevel}, resume ${s.resumeLevel}, status ${s.status}`
+      )
     );
     addSectionTitle("Soft Skills Detail");
-    addList(softTable);
+    addList(
+      report.skills.softSkills.map(
+        (s) =>
+          `${s.name} (from ${s.source}): required ${s.requiredLevel}, resume ${s.resumeLevel}, status ${s.status}`
+      )
+    );
+
+    // Format (PDF)
+    if (report.format) {
+      addSectionTitle("Format");
+      addParagraph(report.format.description);
+      addParagraph(
+        `Date formatting: ${report.format.dateFormattingStatus}, Resume length score: ${report.format.resumeLengthScore}, Bullet point score: ${report.format.bulletPointScore}`
+      );
+      addParagraph(`Date formatting: ${report.format.dateFormattingTip}`);
+      addParagraph(
+        `Resume length: ${report.format.resumeLengthSummary} (${report.format.resumeLengthProTip})`
+      );
+      addSectionTitle("Bullet Point Suggestions");
+      addList(report.format.bulletPointSuggestions || []);
+    }
 
     // Sections
     addSectionTitle("Sections");
@@ -207,11 +243,12 @@ const ResumeAnalysisReport = () => {
     addParagraph(
       `Required sections present: ${report.sections.presentCount}/${report.sections.totalRequired}`
     );
-    const sectionLines = report.sections.items.map(
-      (s) =>
-        `${s.label}: ${s.present ? "Present" : "Missing"} – ${s.detail}`
+    addList(
+      report.sections.items.map(
+        (s) =>
+          `${s.label}: ${s.present ? "Present" : "Missing"} – ${s.detail}`
+      )
     );
-    addList(sectionLines);
 
     // Style
     addSectionTitle("Style");
@@ -257,70 +294,67 @@ const ResumeAnalysisReport = () => {
           </div>
 
           {/* Overview */}
-          <section className="card-base">
+            <section className="card-base">
             <div className="flex items-start justify-between gap-6">
-              <div className="flex-1">
+                <div className="flex-1">
                 <h2 className="mb-2 text-2xl font-semibold">Overview</h2>
                 <p className="text-base text-muted-foreground">
-                  Match Score:{" "}
-                  <span
+                    Match Score:{" "}
+                    <span
                     className={`rounded-full px-2.5 py-0.5 text-sm font-semibold ${scoreBadgeClass(
-                      report.overview.matchScore
+                        report.overview.matchScore
                     )}`}
-                  >
+                    >
                     {report.overview.matchScore}
-                  </span>
+                    </span>
                 </p>
                 <p className="mt-3 text-base text-foreground">
-                  {report.overview.summary}
+                    {report.overview.summary}
                 </p>
-              </div>
+                </div>
 
-              {/* Simple radar-like chips */}
-              <div className="flex flex-col gap-2 text-sm">
-                {[
-                  ["Content", report.radar.content],
-                  ["Skills", report.radar.skills],
-                  ["Format", report.radar.format],
-                  ["Sections", report.radar.sections],
-                  ["Style", report.radar.style],
-                ].map(([label, value]) => (
-                  <div
-                    key={label as string}
+                {/* Radar-like chips – show as percentages, no "/5" */}
+                <div className="flex flex-col gap-2 text-sm">
+                {([
+                    ["Content", report.radar.content],
+                    ["Skills", report.radar.skills],
+                    ["Format", report.radar.format],
+                    ["Sections", report.radar.sections],
+                    ["Style", report.radar.style],
+                ] as const).map(([label, value]) => (
+                    <div
+                    key={label}
                     className="flex items-center justify-between gap-4 rounded-lg bg-muted px-3 py-2"
-                  >
+                    >
                     <span className="font-medium">{label}</span>
                     <span className="rounded-full bg-background px-2.5 py-0.5 text-xs font-semibold">
-                      {value}/5
+                        {value}%
                     </span>
-                  </div>
+                    </div>
                 ))}
-              </div>
+                </div>
             </div>
 
             <div className="mt-6 grid gap-4 md:grid-cols-2">
-              <div className="rounded-xl bg-emerald-50 p-4 text-base">
-                <h3 className="mb-2 font-semibold text-emerald-900">
-                  Highlights
-                </h3>
+                <div className="rounded-xl bg-emerald-50 p-4 text-base">
+                <h3 className="mb-2 font-semibold text-emerald-900">Highlights</h3>
                 <ul className="space-y-1 text-emerald-900">
-                  {report.overview.highlights.map((h, i) => (
+                    {report.overview.highlights.map((h, i) => (
                     <li key={i}>• {h}</li>
-                  ))}
+                    ))}
                 </ul>
-              </div>
-              <div className="rounded-xl bg-amber-50 p-4 text-base">
-                <h3 className="mb-2 font-semibold text-amber-900">
-                  Improvements
-                </h3>
+                </div>
+                <div className="rounded-xl bg-amber-50 p-4 text-base">
+                <h3 className="mb-2 font-semibold text-amber-900">Improvements</h3>
                 <ul className="space-y-1 text-amber-900">
-                  {report.overview.improvements.map((h, i) => (
+                    {report.overview.improvements.map((h, i) => (
                     <li key={i}>• {h}</li>
-                  ))}
+                    ))}
                 </ul>
-              </div>
+                </div>
             </div>
-          </section>
+            </section>
+
 
           {/* Content */}
           <section className="card-base">
@@ -370,49 +404,49 @@ const ResumeAnalysisReport = () => {
                 </ul>
               </div>
 
-                <div>
-    <h3 className="mb-2 font-semibold text-foreground">
-        Spelling & Grammar
-    </h3>
-    {(!report.content.grammarIssues ||
-        report.content.grammarIssues.length === 0) && (
-        <p className="text-base text-muted-foreground">
-        No critical spelling or grammar issues were detected.
-        </p>
-    )}
+              <div>
+                <h3 className="mb-2 font-semibold text-foreground">
+                  Spelling & Grammar
+                </h3>
+                {(!report.content.grammarIssues ||
+                  report.content.grammarIssues.length === 0) && (
+                  <p className="text-base text-muted-foreground">
+                    No critical spelling or grammar issues were detected.
+                  </p>
+                )}
 
-    {report.content.grammarIssues.length > 0 && (
-        <ul className="space-y-2 text-base">
-        {report.content.grammarIssues.map((g, i) => {
-            const hasCorrection = g.corrected && g.corrected.trim().length > 0;
-            const hasExplanation =
-            g.explanation && g.explanation.trim().length > 0;
+                {report.content.grammarIssues.length > 0 && (
+                  <ul className="space-y-2 text-base">
+                    {report.content.grammarIssues.map((g, i) => {
+                      const hasCorrection =
+                        g.corrected && g.corrected.trim().length > 0;
+                      const hasExplanation =
+                        g.explanation && g.explanation.trim().length > 0;
 
-            return (
-            <li key={i} className="rounded-lg bg-muted px-3 py-2">
-                {/* Original sentence */}
-                <p className="text-foreground">{g.original}</p>
-
-                {/* Corrected sentence or fallback */}
-                <p className="mt-1 text-emerald-800">
-                <span className="font-semibold">Corrected:</span>{" "}
-                {hasCorrection ? g.corrected : "No change suggested."}
-                </p>
-
-                {/* Issue type + explanation or fallback */}
-                <p className="mt-1 text-sm font-medium text-red-600">
-                [{g.issueType || "info"}]{" "}
-                {hasExplanation
-                    ? g.explanation
-                    : "Minor stylistic improvement; not a strict error."}
-                </p>
-            </li>
-            );
-        })}
-        </ul>
-    )}
-    </div>
-
+                      return (
+                        <li
+                          key={i}
+                          className="rounded-lg bg-muted px-3 py-2"
+                        >
+                          <p className="text-foreground">{g.original}</p>
+                          <p className="mt-1 text-emerald-800">
+                            <span className="font-semibold">Corrected:</span>{" "}
+                            {hasCorrection
+                              ? g.corrected
+                              : "No change suggested."}
+                          </p>
+                          <p className="mt-1 text-sm font-medium text-red-600">
+                            [{g.issueType || "info"}]{" "}
+                            {hasExplanation
+                              ? g.explanation
+                              : "Minor stylistic improvement; not a strict error."}
+                          </p>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
             </div>
           </section>
 
@@ -444,7 +478,6 @@ const ResumeAnalysisReport = () => {
               </div>
             </div>
 
-            {/* Hard skills table */}
             <div className="mt-6 text-base">
               <h3 className="mb-2 font-semibold">Hard Skills</h3>
               <div className="overflow-x-auto rounded-xl border">
@@ -488,7 +521,6 @@ const ResumeAnalysisReport = () => {
                 </table>
               </div>
 
-              {/* Soft skills */}
               <h3 className="mt-6 mb-2 font-semibold">Soft Skills</h3>
               <div className="overflow-x-auto rounded-xl border">
                 <table className="min-w-full text-left text-sm">
@@ -532,6 +564,93 @@ const ResumeAnalysisReport = () => {
               </div>
             </div>
           </section>
+
+          {/* Format */}
+          {report.format && (
+            <section className="card-base">
+              <h2 className="mb-2 text-xl font-semibold">Format</h2>
+              <p className="text-base text-muted-foreground">
+                {report.format.description}
+              </p>
+
+              <div className="mt-5 rounded-xl bg-amber-50 p-4 text-base">
+                <p className="mb-3 text-center font-medium text-amber-900">
+                  You&apos;re so close! Refine your formatting to enhance
+                  readability and improve ATS compatibility.
+                </p>
+                <div className="mx-auto flex max-w-xl items-center justify-between rounded-xl bg-white px-8 py-4 text-center text-sm font-semibold text-amber-900 shadow-sm">
+                  <div className="flex-1">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                      Date Formatting
+                    </p>
+                    <p className="mt-1 text-lg text-emerald-600">
+                      {report.format.dateFormattingStatus}
+                    </p>
+                  </div>
+                  <div className="h-10 w-px bg-amber-100" />
+                  <div className="flex-1">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                      Resume Length
+                    </p>
+                    <p className="mt-1 text-lg">
+                      {report.format.resumeLengthScore}
+                    </p>
+                  </div>
+                  <div className="h-10 w-px bg-amber-100" />
+                  <div className="flex-1">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                      Bullet Points
+                    </p>
+                    <p className="mt-1 text-lg">
+                      {report.format.bulletPointScore}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-base">
+                <h3 className="mb-1 font-semibold text-emerald-900">
+                  Date Formatting
+                </h3>
+                <p className="text-sm text-emerald-900">
+                  {report.format.dateFormattingTip}
+                </p>
+              </div>
+
+              <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-base">
+                <h3 className="mb-1 font-semibold text-amber-900">
+                  Resume Length
+                </h3>
+                <p className="text-sm text-amber-900">
+                  {report.format.resumeLengthSummary}
+                </p>
+                <p className="mt-1 text-xs text-amber-800">
+                  {report.format.resumeLengthProTip}
+                </p>
+              </div>
+
+              <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-base">
+                <h3 className="mb-1 font-semibold text-amber-900">
+                  Bullet Points
+                </h3>
+                <p className="text-sm text-amber-900">
+                  {report.format.bulletPointSummary}
+                </p>
+                {report.format.bulletPointSuggestions?.length > 0 && (
+                  <div className="mt-3 rounded-lg bg-white px-4 py-3 text-sm text-foreground">
+                    <p className="mb-2 text-xs font-medium text-muted-foreground">
+                      Suggestions
+                    </p>
+                    <ul className="list-disc space-y-1 pl-5">
+                      {report.format.bulletPointSuggestions.map((s, i) => (
+                        <li key={i}>{s}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
 
           {/* Sections */}
           <section className="card-base">
