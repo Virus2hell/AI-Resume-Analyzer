@@ -78,7 +78,6 @@ const ResumeAnalysisReport = () => {
   const report = (location.state as { report?: DetailedReport })?.report;
 
   if (!report) {
-    // Direct access – redirect back
     navigate("/resume-analysis");
     return null;
   }
@@ -109,7 +108,7 @@ const ResumeAnalysisReport = () => {
     };
 
     const addParagraph = (text: string) => {
-      doc.setFontSize(11);
+      doc.setFontSize(12);
       doc.setFont("helvetica", "normal");
       const lines = doc.splitTextToSize(text, maxWidth);
       lines.forEach((line: string) => {
@@ -118,13 +117,13 @@ const ResumeAnalysisReport = () => {
           y = margin;
         }
         doc.text(line, margin, y);
-        y += 14;
+        y += 16;
       });
-      y += 6;
+      y += 8;
     };
 
     const addList = (items: string[]) => {
-      doc.setFontSize(11);
+      doc.setFontSize(12);
       doc.setFont("helvetica", "normal");
       items.forEach((item) => {
         const lines = doc.splitTextToSize(`• ${item}`, maxWidth);
@@ -134,7 +133,7 @@ const ResumeAnalysisReport = () => {
             y = margin;
           }
           doc.text(line, margin, y);
-          y += 14;
+          y += 16;
         });
       });
       y += 8;
@@ -143,9 +142,7 @@ const ResumeAnalysisReport = () => {
     addTitle("Resume Analysis Report");
 
     // Overview
-    addSectionTitle(
-      `Overview – Match Score: ${report.overview.matchScore}`
-    );
+    addSectionTitle(`Overview – Match Score: ${report.overview.matchScore}`);
     addParagraph(report.overview.summary);
     addSectionTitle("Highlights");
     addList(report.overview.highlights || []);
@@ -232,7 +229,7 @@ const ResumeAnalysisReport = () => {
           <div className="flex items-center justify-between gap-4">
             <button
               onClick={() => navigate("/resume-analysis")}
-              className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground hover:bg-secondary"
+              className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary"
             >
               <ArrowLeft className="h-4 w-4" />
               Back
@@ -240,7 +237,7 @@ const ResumeAnalysisReport = () => {
 
             <button
               onClick={handleDownloadPdf}
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
             >
               <Download className="h-4 w-4" />
               Download Report
@@ -252,23 +249,23 @@ const ResumeAnalysisReport = () => {
             <div className="flex items-start justify-between gap-6">
               <div className="flex-1">
                 <h2 className="mb-2 text-2xl font-semibold">Overview</h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-base text-muted-foreground">
                   Match Score:{" "}
                   <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ${scoreBadgeClass(
+                    className={`rounded-full px-2.5 py-0.5 text-sm font-semibold ${scoreBadgeClass(
                       report.overview.matchScore
                     )}`}
                   >
                     {report.overview.matchScore}
                   </span>
                 </p>
-                <p className="mt-3 text-sm text-foreground">
+                <p className="mt-3 text-base text-foreground">
                   {report.overview.summary}
                 </p>
               </div>
 
               {/* Simple radar-like chips */}
-              <div className="flex flex-col gap-2 text-xs">
+              <div className="flex flex-col gap-2 text-sm">
                 {[
                   ["Content", report.radar.content],
                   ["Skills", report.radar.skills],
@@ -278,10 +275,10 @@ const ResumeAnalysisReport = () => {
                 ].map(([label, value]) => (
                   <div
                     key={label as string}
-                    className="flex items-center justify-between gap-4 rounded-lg bg-muted px-3 py-1.5"
+                    className="flex items-center justify-between gap-4 rounded-lg bg-muted px-3 py-2"
                   >
                     <span className="font-medium">{label}</span>
-                    <span className="rounded-full bg-background px-2 py-0.5 text-[11px] font-semibold">
+                    <span className="rounded-full bg-background px-2.5 py-0.5 text-xs font-semibold">
                       {value}/5
                     </span>
                   </div>
@@ -290,7 +287,7 @@ const ResumeAnalysisReport = () => {
             </div>
 
             <div className="mt-6 grid gap-4 md:grid-cols-2">
-              <div className="rounded-xl bg-emerald-50 p-4 text-sm">
+              <div className="rounded-xl bg-emerald-50 p-4 text-base">
                 <h3 className="mb-2 font-semibold text-emerald-900">
                   Highlights
                 </h3>
@@ -300,7 +297,7 @@ const ResumeAnalysisReport = () => {
                   ))}
                 </ul>
               </div>
-              <div className="rounded-xl bg-amber-50 p-4 text-sm">
+              <div className="rounded-xl bg-amber-50 p-4 text-base">
                 <h3 className="mb-2 font-semibold text-amber-900">
                   Improvements
                 </h3>
@@ -318,33 +315,33 @@ const ResumeAnalysisReport = () => {
             <header className="mb-3 flex items-center justify-between">
               <h2 className="text-xl font-semibold">Content</h2>
             </header>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-base text-muted-foreground">
               {report.content.description}
             </p>
 
-            <div className="mt-6 rounded-xl bg-sky-50 p-4 text-sm">
+            <div className="mt-6 rounded-xl bg-sky-50 p-4 text-base">
               <p className="mb-4 text-center font-medium text-sky-900">
                 Almost there! Let&apos;s refine your content to make it more
                 impactful and error-free.
               </p>
-              <div className="mx-auto flex max-w-xs items-center justify-between rounded-xl bg-white px-6 py-3 text-center text-xs font-semibold text-sky-900 shadow-sm">
+              <div className="mx-auto flex max-w-xs items-center justify-between rounded-xl bg-white px-6 py-3 text-center text-sm font-semibold text-sky-900 shadow-sm">
                 <div>
                   <p>Measurable Result</p>
-                  <p className="mt-1 text-lg">
+                  <p className="mt-1 text-xl">
                     {report.content.measurableResultScore}
                   </p>
                 </div>
                 <div className="h-8 w-px bg-sky-100" />
                 <div>
                   <p>Spelling & Grammar</p>
-                  <p className="mt-1 text-lg">
+                  <p className="mt-1 text-xl">
                     {report.content.spellingGrammarScore}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="mt-5 space-y-5 text-sm">
+            <div className="mt-5 space-y-5 text-base">
               <div>
                 <h3 className="mb-2 font-semibold text-foreground">
                   Measurable Result
@@ -353,7 +350,7 @@ const ResumeAnalysisReport = () => {
                   {report.content.measurableSuggestions.map((s, i) => (
                     <li
                       key={i}
-                      className="rounded-lg bg-muted px-3 py-2 text-sm"
+                      className="rounded-lg bg-muted px-3 py-2 text-base"
                     >
                       {s}
                     </li>
@@ -365,11 +362,11 @@ const ResumeAnalysisReport = () => {
                 <h3 className="mb-2 font-semibold text-foreground">
                   Spelling & Grammar
                 </h3>
-                <ul className="space-y-2 text-sm">
+                <ul className="space-y-2 text-base">
                   {report.content.grammarIssues.map((g, i) => (
                     <li key={i} className="rounded-lg bg-muted px-3 py-2">
                       <p className="text-foreground">{g.original}</p>
-                      <p className="mt-1 text-xs font-medium text-red-600">
+                      <p className="mt-1 text-sm font-medium text-red-600">
                         {g.issue}
                       </p>
                     </li>
@@ -382,25 +379,25 @@ const ResumeAnalysisReport = () => {
           {/* Skills */}
           <section className="card-base">
             <h2 className="mb-2 text-xl font-semibold">Skills</h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-base text-muted-foreground">
               {report.skills.description}
             </p>
 
-            <div className="mt-5 rounded-xl bg-emerald-50 p-4 text-sm">
+            <div className="mt-5 rounded-xl bg-emerald-50 p-4 text-base">
               <p className="mb-3 text-center font-medium text-emerald-900">
                 Add these key skills for a stronger match!
               </p>
-              <div className="mx-auto flex max-w-xs items-center justify-between rounded-xl bg-white px-6 py-3 text-center text-xs font-semibold text-emerald-900 shadow-sm">
+              <div className="mx-auto flex max-w-xs items-center justify-between rounded-xl bg-white px-6 py-3 text-center text-sm font-semibold text-emerald-900 shadow-sm">
                 <div>
                   <p>Hard Skills</p>
-                  <p className="mt-1 text-lg">
+                  <p className="mt-1 text-xl">
                     {report.skills.hardSkillsSummary.missingCount}
                   </p>
                 </div>
                 <div className="h-8 w-px bg-emerald-100" />
                 <div>
                   <p>Soft Skills</p>
-                  <p className="mt-1 text-lg">
+                  <p className="mt-1 text-xl">
                     {report.skills.softSkillsSummary.missingCount}
                   </p>
                 </div>
@@ -408,11 +405,11 @@ const ResumeAnalysisReport = () => {
             </div>
 
             {/* Hard skills table */}
-            <div className="mt-6 text-sm">
+            <div className="mt-6 text-base">
               <h3 className="mb-2 font-semibold">Hard Skills</h3>
               <div className="overflow-x-auto rounded-xl border">
-                <table className="min-w-full text-left text-xs">
-                  <thead className="bg-muted text-xs font-semibold">
+                <table className="min-w-full text-left text-sm">
+                  <thead className="bg-muted text-sm font-semibold">
                     <tr>
                       <th className="px-3 py-2">Skill</th>
                       <th className="px-3 py-2">Job Description</th>
@@ -429,18 +426,18 @@ const ResumeAnalysisReport = () => {
                             : "bg-background"
                         }
                       >
-                        <td className="px-3 py-2 text-xs">
+                        <td className="px-3 py-2 text-sm">
                           {s.name}{" "}
                           {s.status === "missing" && (
-                            <span className="text-[11px] text-muted-foreground">
+                            <span className="text-xs text-muted-foreground">
                               (required)
                             </span>
                           )}
                         </td>
-                        <td className="px-3 py-2 text-xs">
+                        <td className="px-3 py-2 text-sm">
                           {s.requiredLevel}
                         </td>
-                        <td className="px-3 py-2 text-xs">
+                        <td className="px-3 py-2 text-sm">
                           {s.resumeLevel}
                         </td>
                       </tr>
@@ -452,8 +449,8 @@ const ResumeAnalysisReport = () => {
               {/* Soft skills */}
               <h3 className="mt-6 mb-2 font-semibold">Soft Skills</h3>
               <div className="overflow-x-auto rounded-xl border">
-                <table className="min-w-full text-left text-xs">
-                  <thead className="bg-muted text-xs font-semibold">
+                <table className="min-w-full text-left text-sm">
+                  <thead className="bg-muted text-sm font-semibold">
                     <tr>
                       <th className="px-3 py-2">Skill</th>
                       <th className="px-3 py-2">Job Description</th>
@@ -470,18 +467,18 @@ const ResumeAnalysisReport = () => {
                             : "bg-background"
                         }
                       >
-                        <td className="px-3 py-2 text-xs">
+                        <td className="px-3 py-2 text-sm">
                           {s.name}{" "}
                           {s.status === "missing" && (
-                            <span className="text-[11px] text-muted-foreground">
+                            <span className="text-xs text-muted-foreground">
                               (required)
                             </span>
                           )}
                         </td>
-                        <td className="px-3 py-2 text-xs">
+                        <td className="px-3 py-2 text-sm">
                           {s.requiredLevel}
                         </td>
-                        <td className="px-3 py-2 text-xs">
+                        <td className="px-3 py-2 text-sm">
                           {s.resumeLevel}
                         </td>
                       </tr>
@@ -495,21 +492,21 @@ const ResumeAnalysisReport = () => {
           {/* Sections */}
           <section className="card-base">
             <h2 className="mb-2 text-xl font-semibold">Sections</h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-base text-muted-foreground">
               {report.sections.description}
             </p>
 
-            <div className="mt-5 rounded-xl bg-rose-50 p-4 text-sm">
+            <div className="mt-5 rounded-xl bg-rose-50 p-4 text-base">
               <p className="mb-3 text-center font-medium text-rose-900">
                 Almost there! Just a couple of sections left to include.
               </p>
-              <div className="mx-auto flex max-w-xs items-center justify-center rounded-xl bg-white px-6 py-3 text-center text-xs font-semibold text-rose-900 shadow-sm">
+              <div className="mx-auto flex max-w-xs items-center justify-center rounded-xl bg-white px-6 py-3 text-center text-sm font-semibold text-rose-900 shadow-sm">
                 Sections: {report.sections.presentCount}/
                 {report.sections.totalRequired}
               </div>
             </div>
 
-            <ul className="mt-5 space-y-2 text-sm">
+            <ul className="mt-5 space-y-2 text-base">
               {report.sections.items.map((s, i) => (
                 <li
                   key={i}
@@ -518,12 +515,12 @@ const ResumeAnalysisReport = () => {
                   <span className="font-medium">
                     {s.label}
                     {!s.present && (
-                      <span className="ml-1 text-xs text-red-500">
+                      <span className="ml-1 text-sm text-red-500">
                         (missing)
                       </span>
                     )}
                   </span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-sm text-muted-foreground">
                     {s.detail}
                   </span>
                 </li>
@@ -534,31 +531,31 @@ const ResumeAnalysisReport = () => {
           {/* Style */}
           <section className="card-base">
             <h2 className="mb-2 text-xl font-semibold">Style</h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-base text-muted-foreground">
               {report.style.description}
             </p>
 
-            <div className="mt-5 rounded-xl bg-violet-50 p-4 text-sm">
+            <div className="mt-5 rounded-xl bg-violet-50 p-4 text-base">
               <p className="mb-3 text-center font-medium text-violet-900">
                 You&apos;re nearly there! A few small adjustments to sharpen
                 your style and make your resume stand out.
               </p>
-              <div className="mx-auto flex max-w-xs items-center justify-between rounded-xl bg-white px-6 py-3 text-center text-xs font-semibold text-violet-900 shadow-sm">
+              <div className="mx-auto flex max-w-xs items-center justify-between rounded-xl bg-white px-6 py-3 text-center text-sm font-semibold text-violet-900 shadow-sm">
                 <div>
                   <p>Voice</p>
-                  <p className="mt-1 text-lg">{report.style.voiceScore}</p>
+                  <p className="mt-1 text-xl">{report.style.voiceScore}</p>
                 </div>
                 <div className="h-8 w-px bg-violet-100" />
                 <div>
                   <p>Buzzwords &amp; Cliches</p>
-                  <p className="mt-1 text-lg">
+                  <p className="mt-1 text-xl">
                     {report.style.buzzwordScore}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="mt-5 grid gap-4 md:grid-cols-2 text-sm">
+            <div className="mt-5 grid gap-4 md:grid-cols-2 text-base">
               <div>
                 <h3 className="mb-2 font-semibold">Voice</h3>
                 <ul className="space-y-2">
