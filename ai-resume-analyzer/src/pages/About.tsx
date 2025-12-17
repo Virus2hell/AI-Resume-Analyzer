@@ -1,34 +1,31 @@
-import Layout from '@/components/Layout';
-import { Target, Users, Zap, Heart } from 'lucide-react';
+import Layout from "@/components/Layout";
+import { Target, Users, Zap, Heart } from "lucide-react";
 
 const values = [
   {
     icon: Target,
-    title: 'Mission-Driven',
-    description: 'We believe everyone deserves the opportunity to find meaningful work that matches their skills.',
+    title: "Student Built, Career Focused",
+    description:
+      "KeyWorded is built by a small team of students who have been through the placement grind and understand how confusing job descriptions and resumes can be.",
   },
   {
     icon: Users,
-    title: 'User-Focused',
-    description: 'Every feature we build is designed with job seekers in mind, making the process simpler and more effective.',
+    title: "Personalized For Every JD",
+    description:
+      "We know the same ‘software developer’ role can ask for JavaScript in one company and Python in another, so our tools adapt your resume to each specific job description.",
   },
   {
     icon: Zap,
-    title: 'Innovation',
-    description: 'We leverage cutting-edge AI technology to provide insights that were previously only available to career coaches.',
+    title: "Practical Learning, Not Just Theory",
+    description:
+      "From tech-stack resources with code and examples to clear roadmaps for different domains, everything is designed to help you actually build skills, not just read about them.",
   },
   {
     icon: Heart,
-    title: 'Empathy',
-    description: 'Job searching is stressful. We aim to reduce that stress with clear, actionable feedback.',
+    title: "Support For Job Seekers",
+    description:
+      "Job hunting is stressful, especially as a student. KeyWorded aims to reduce that stress with clear feedback, resume-writing help, and a curated job section.",
   },
-];
-
-const stats = [
-  { value: '100K+', label: 'Resumes Analyzed' },
-  { value: '85%', label: 'Success Rate' },
-  { value: '50+', label: 'Industries Covered' },
-  { value: '4.9/5', label: 'User Rating' },
 ];
 
 const About = () => {
@@ -39,49 +36,60 @@ const About = () => {
           {/* Hero */}
           <div className="mb-16 text-center">
             <h1 className="text-3xl font-bold text-foreground sm:text-4xl lg:text-5xl">
-              About ResumeAI
+              About KeyWorded
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-              We're on a mission to democratize career success by giving everyone access to 
-              AI-powered resume optimization tools.
+              KeyWorded is a student-built platform that helps job seekers
+              tailor their resume to each job description, learn new tech
+              stacks with real examples, and plan their career with clear,
+              practical roadmaps.
             </p>
           </div>
 
           {/* Story */}
           <div className="mb-16">
-            <h2 className="mb-6 text-2xl font-bold text-foreground">Our Story</h2>
+            <h2 className="mb-6 text-2xl font-bold text-foreground">
+              Our Story
+            </h2>
             <div className="prose prose-gray max-w-none text-muted-foreground">
               <p className="mb-4">
-                ResumeAI was born from a simple observation: talented people were getting 
-                overlooked because their resumes didn't speak the language of Applicant 
-                Tracking Systems.
+                KeyWorded started as a project by a group of students who were
+                preparing for internships and placements. We noticed that even
+                for the same role title, like “Software Developer”, different
+                companies asked for completely different skills like one wanted
+                JavaScript, another focused on Python, and another cared more
+                about frameworks or cloud tools.
               </p>
               <p className="mb-4">
-                Our founders, experienced hiring managers and AI engineers, saw firsthand 
-                how qualified candidates were being filtered out before a human ever saw 
-                their application. They knew there had to be a better way.
+                Updating a resume for every single job quickly became tiring and
+                confusing. It was easy to miss an important keyword from the job
+                description or forget to highlight the right project. We built
+                KeyWorded to solve that problem by analyzing a resume against a
+                specific JD and clearly showing which skills and sections need
+                improvement.
+              </p>
+              <p className="mb-4">
+                Over time, the project grew into a complete platform: a resume
+                analyzer, a resume-writing tool to create your own resume,
+                detailed resources for different tech stacks with code and
+                examples, and a job section to discover relevant roles. We also
+                added roadmaps for various domains so students know what to
+                learn next instead of guessing.
               </p>
               <p>
-                Today, ResumeAI helps thousands of job seekers optimize their resumes, 
-                understand job requirements, and present themselves in the best possible 
-                light to both AI systems and human recruiters.
+                Our goal is simple: help students and early-career developers
+                understand what each job really expects, tailor their resumes
+                with confidence, and learn the right skills to move closer to
+                their dream role—one job description at a time.
               </p>
             </div>
           </div>
 
-          {/* Stats */}
-          <div className="mb-16 grid grid-cols-2 gap-6 sm:grid-cols-4">
-            {stats.map((stat, index) => (
-              <div key={index} className="card-base text-center">
-                <p className="text-3xl font-bold text-primary">{stat.value}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-
           {/* Values */}
           <div className="mb-16">
-            <h2 className="mb-8 text-center text-2xl font-bold text-foreground">Our Values</h2>
+            <h2 className="mb-8 text-center text-2xl font-bold text-foreground">
+              Our Values
+            </h2>
             <div className="grid gap-6 sm:grid-cols-2">
               {values.map((value, index) => (
                 <div key={index} className="card-base flex items-start gap-4">
@@ -89,23 +97,16 @@ const About = () => {
                     <value.icon className="h-6 w-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground">{value.title}</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">{value.description}</p>
+                    <h3 className="font-semibold text-foreground">
+                      {value.title}
+                    </h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {value.description}
+                    </p>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* Team CTA */}
-          <div className="rounded-xl bg-gradient-to-r from-primary/10 to-accent/10 p-8 text-center">
-            <h2 className="text-2xl font-bold text-foreground">Join Our Team</h2>
-            <p className="mt-2 text-muted-foreground">
-              We're always looking for talented people who share our mission
-            </p>
-            <a href="/jobs" className="btn-primary mt-6 inline-block">
-              View Open Positions
-            </a>
           </div>
         </div>
       </div>
