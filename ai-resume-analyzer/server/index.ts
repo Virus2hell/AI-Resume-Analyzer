@@ -31,87 +31,138 @@ interface AnalysisResult {
 /**
  * Existing resume vs JD analysis
  */
-app.post("/api/analyze-resume", async (req: Request, res: Response) => {
-  try {
-    const { resumeText, jobDescription } = req.body as {
-      resumeText: string;
-      jobDescription: string;
-    };
+// server/index.ts (only the NEW route – keep your existing ones)
 
-    if (!resumeText?.trim() || !jobDescription?.trim()) {
-      return res
-        .status(400)
-        .json({ error: "Missing resumeText or jobDescription" });
-    }
+app.post(
+  "/api/detailed-resume-analysis",
+  async (req: Request, res: Response) => {
+    try {
+      const { resumeText, jobDescription } = req.body as {
+        resumeText: string;
+        jobDescription?: string;
+      };
 
-    console.log("Received analyze request:", {
-      resumeLength: resumeText.length,
-      jdLength: jobDescription.length,
-    });
+      if (!resumeText?.trim()) {
+        return res.status(400).json({ error: "Missing resumeText" });
+      }
 
-    const prompt = `
-You are an expert ATS and resume evaluator.
+      const prompt = `
+You are an advanced ATS and HR expert.
 
-Analyze the following resume against the job description and return ONLY valid JSON (no markdown, no explanation).
+Analyze the following resume${jobDescription?.trim() ? " against the job description" : ""} and return a DETAILED JSON report to drive a UI similar to a modern resume analyzer.
 
-Resume:
-${resumeText.slice(0, 4000)}
+RESUME:
+${resumeText.slice(0, 8000)}
 
-Job Description:
-${jobDescription.slice(0, 4000)}
+${jobDescription?.trim() ? `JOB DESCRIPTION:\n${jobDescription.slice(0, 4000)}` : ""}
 
-Return strictly this JSON shape:
+Return ONLY valid JSON with this exact shape and keys:
 
 {
-  "overallScore": <number 0-100>,
-  "matchPercentage": <number 0-100>,
-  "strengths": ["..."],
-  "improvements": ["..."],
-  "missingKeywords": ["..."],
-  "recommendations": ["..."]
+  "overview": {
+    "matchScore": number,              // 0-100
+    "summary": string,                 // short paragraph
+    "highlights": string[],            // 3-6 bullet points
+    "improvements": string[]           // 3-6 bullet points
+  },
+  "radar": {
+    "content": number,                 // 0-5
+    "skills": number,                  // 0-5
+    "format": number,                  // 0-5
+    "sections": number,                // 0-5
+    "style": number                    // 0-5
+  },
+  "content": {
+    "description": string,
+    "measurableResultScore": number,   // 0-3
+    "spellingGrammarScore": number,    // 0-3
+    "measurableSuggestions": string[], // each is a suggested improved bullet
+    "grammarIssues": [{
+      "original": string,
+      "issue": string
+    }]
+  },
+  "skills": {
+    "description": string,
+    "hardSkillsSummary": {
+      "missingCount": number,
+      "presentCount": number
+    },
+    "softSkillsSummary": {
+      "missingCount": number,
+      "presentCount": number
+    },
+    "hardSkills": [{
+      "name": string,
+      "requiredLevel": number,  // 0-4
+      "resumeLevel": number,    // 0-4
+      "status": "missing" | "present"
+    }],
+    "softSkills": [{
+      "name": string,
+      "requiredLevel": number,
+      "resumeLevel": number,
+      "status": "missing" | "present"
+    }]
+  },
+  "sections": {
+    "description": string,
+    "totalRequired": number,
+    "presentCount": number,
+    "items": [{
+      "label": string,
+      "present": boolean,
+      "detail": string
+    }]
+  },
+  "style": {
+    "description": string,
+    "voiceScore": number,             // 0-3
+    "buzzwordScore": number,          // 0-3
+    "voiceSuggestions": string[],
+    "buzzwordSuggestions": string[]
+  }
 }
+
+Constraints:
+- Respond ONLY with JSON, no markdown, no backticks.
+- Do not invent personal contact details not clearly present.
 `.trim();
 
-    const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
-      temperature: 0.2,
-      max_tokens: 800,
-      messages: [{ role: "user", content: prompt }],
-    });
+      const completion = await groq.chat.completions.create({
+        model: "llama-3.3-70b-versatile",
+        temperature: 0.25,
+        max_tokens: 1400,
+        response_format: { type: "json_object" },
+        messages: [{ role: "user", content: prompt }],
+      });
 
-    const content = completion.choices[0]?.message?.content;
-    console.log("Groq raw content:", content);
+      const content = completion.choices[0]?.message?.content;
+      if (!content) {
+        return res
+          .status(500)
+          .json({ error: "Empty response from Groq for detailed analysis" });
+      }
 
-    if (!content) {
-      return res.status(500).json({ error: "Empty response from Groq" });
-    }
+      let parsed;
+      try {
+        parsed = JSON.parse(content);
+      } catch (err) {
+        console.error("JSON parse error from Groq:", err, content);
+        return res
+          .status(500)
+          .json({ error: "Failed to parse detailed analysis JSON" });
+      }
 
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      console.error("No JSON match in Groq content");
+      return res.json(parsed);
+    } catch (error) {
+      console.error("Groq detailed analysis error:", error);
       return res
         .status(500)
-        .json({ error: "Groq response did not contain JSON" });
+        .json({ error: "Failed to run detailed resume analysis." });
     }
-
-    let parsed: AnalysisResult;
-    try {
-      parsed = JSON.parse(jsonMatch[0]);
-    } catch (e) {
-      console.error("JSON.parse failed:", e);
-      return res
-        .status(500)
-        .json({ error: "Failed to parse Groq response JSON" });
-    }
-
-    return res.json(parsed);
-  } catch (error) {
-    console.error("Groq analysis error (outer catch):", error);
-    return res
-      .status(500)
-      .json({ error: "Failed to analyze resume. Please try again." });
   }
-});
+);
 
 /**
  * Cover letter generation

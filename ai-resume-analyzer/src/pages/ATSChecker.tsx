@@ -1,7 +1,10 @@
-import { useState } from "react";
+// src/pages/ATSChecker.tsx
+import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { Loader2, FileText, AlertCircle, Download } from "lucide-react";
 import jsPDF from "jspdf";
+import * as pdfjsLib from "pdfjs-dist";
+import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url"; // important for Vite [web:159]
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
@@ -22,11 +25,42 @@ const ATSChecker = () => {
   const [report, setReport] = useState<AtsReport | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Configure PDF.js worker once
+  useEffect(() => {
+    (pdfjsLib as any).GlobalWorkerOptions.workerSrc = pdfWorker;
+  }, []);
+
   const extractTextFromFile = async (file: File): Promise<string> => {
+    // Plain text files are easy
     if (file.type.startsWith("text/")) {
       return await file.text();
     }
-    // For PDF/DOCX you can later integrate proper parsers.
+
+    // Basic PDF text extraction
+    if (
+      file.type === "application/pdf" ||
+      file.name.toLowerCase().endsWith(".pdf")
+    ) {
+      const arrayBuffer = await file.arrayBuffer();
+      // TS types for getDocument's params sometimes complain about ArrayBuffer,
+      // but runtime supports it. [web:160][web:166]
+      const pdf = await (pdfjsLib as any).getDocument({
+        data: arrayBuffer,
+      }).promise;
+
+      let fullText = "";
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const content = await page.getTextContent();
+        const strings = content.items
+          .map((item: any) => ("str" in item ? item.str : ""))
+          .join(" ");
+        fullText += strings + "\n\n";
+      }
+      return fullText.trim();
+    }
+
+    // Fallback for DOC/DOCX etc. (still need manual paste or a server parser)
     return `File name: ${file.name}, type: ${file.type}
 
 (Text extraction for this format is not implemented yet. Please paste your resume text below.)`;
