@@ -31,7 +31,6 @@ interface AnalysisResult {
 /**
  * Existing resume vs JD analysis
  */
-// server/index.ts (only the NEW route – keep your existing ones)
 
 app.post(
   "/api/detailed-resume-analysis",
@@ -49,38 +48,57 @@ app.post(
       const prompt = `
 You are an advanced ATS and HR expert.
 
-Analyze the following resume${jobDescription?.trim() ? " against the job description" : ""} and return a DETAILED JSON report to drive a UI similar to a modern resume analyzer.
+Analyze the following resume AGAINST THE ENTIRE job posting, including:
+- Title and summary
+- Skills / Requirements
+- Key Responsibilities / Duties / What you will do
+- Any tools, technologies, or methods mentioned anywhere in the JD
+
+Your goals:
+1) Extract all important skills and keywords from the job description, even if they are only mentioned in responsibilities, tools, or narrative sections.
+2) Compare those skills with the resume and score match quality.
+3) Provide detailed, constructive feedback on content, skills, sections, and writing style.
+4) Give precise grammar and spelling feedback with corrections.
 
 RESUME:
 ${resumeText.slice(0, 8000)}
 
-${jobDescription?.trim() ? `JOB DESCRIPTION:\n${jobDescription.slice(0, 4000)}` : ""}
+${
+  jobDescription?.trim()
+    ? `JOB DESCRIPTION (entire posting, including responsibilities and skills):
+${jobDescription.slice(0, 4000)}`
+    : "NO JOB DESCRIPTION PROVIDED – assume a generic full‑stack / software role and still provide a detailed analysis."
+}
 
-Return ONLY valid JSON with this exact shape and keys:
+Return ONLY valid JSON using this exact shape:
 
 {
   "overview": {
-    "matchScore": number,              // 0-100
-    "summary": string,                 // short paragraph
-    "highlights": string[],            // 3-6 bullet points
-    "improvements": string[]           // 3-6 bullet points
+    "matchScore": number,
+    "summary": string,
+    "highlights": string[],
+    "improvements": string[]
   },
   "radar": {
-    "content": number,                 // 0-5
-    "skills": number,                  // 0-5
-    "format": number,                  // 0-5
-    "sections": number,                // 0-5
-    "style": number                    // 0-5
+    "content": number,
+    "skills": number,
+    "format": number,
+    "sections": number,
+    "style": number
   },
   "content": {
     "description": string,
-    "measurableResultScore": number,   // 0-3
-    "spellingGrammarScore": number,    // 0-3
-    "measurableSuggestions": string[], // each is a suggested improved bullet
-    "grammarIssues": [{
-      "original": string,
-      "issue": string
-    }]
+    "measurableResultScore": number,
+    "spellingGrammarScore": number,
+    "measurableSuggestions": string[],
+    "grammarIssues": [
+      {
+        "original": string,
+        "corrected": string,
+        "issueType": "spelling" | "grammar" | "punctuation" | "word_choice",
+        "explanation": string
+      }
+    ]
   },
   "skills": {
     "description": string,
@@ -92,47 +110,57 @@ Return ONLY valid JSON with this exact shape and keys:
       "missingCount": number,
       "presentCount": number
     },
-    "hardSkills": [{
-      "name": string,
-      "requiredLevel": number,  // 0-4
-      "resumeLevel": number,    // 0-4
-      "status": "missing" | "present"
-    }],
-    "softSkills": [{
-      "name": string,
-      "requiredLevel": number,
-      "resumeLevel": number,
-      "status": "missing" | "present"
-    }]
+    "hardSkills": [
+      {
+        "name": string,
+        "source": "explicit_skill_section" | "responsibilities" | "tools_section" | "other_jd_text",
+        "requiredLevel": number,
+        "resumeLevel": number,
+        "status": "missing" | "present"
+      }
+    ],
+    "softSkills": [
+      {
+        "name": string,
+        "source": "explicit_skill_section" | "responsibilities" | "summary" | "other_jd_text",
+        "requiredLevel": number,
+        "resumeLevel": number,
+        "status": "missing" | "present"
+      }
+    ]
   },
   "sections": {
     "description": string,
     "totalRequired": number,
     "presentCount": number,
-    "items": [{
-      "label": string,
-      "present": boolean,
-      "detail": string
-    }]
+    "items": [
+      {
+        "label": string,
+        "present": boolean,
+        "detail": string
+      }
+    ]
   },
   "style": {
     "description": string,
-    "voiceScore": number,             // 0-3
-    "buzzwordScore": number,          // 0-3
+    "voiceScore": number,
+    "buzzwordScore": number,
     "voiceSuggestions": string[],
     "buzzwordSuggestions": string[]
   }
 }
 
-Constraints:
-- Respond ONLY with JSON, no markdown, no backticks.
-- Do not invent personal contact details not clearly present.
+Important:
+- When extracting skills from the JD, look at ALL parts, especially "Key Responsibilities", "What you will do", "Day‑to‑day", and similar sections, not just the explicit "Skills" list.
+- For each hard or soft skill, set "source" to where it mainly came from in the JD (e.g., responsibilities vs skills).
+- For grammarIssues, ALWAYS include the original text from the resume, a corrected version, a short issueType, and a brief explanation.
+- Respond ONLY with JSON, no markdown, no commentary, no backticks.
 `.trim();
 
       const completion = await groq.chat.completions.create({
         model: "llama-3.3-70b-versatile",
         temperature: 0.25,
-        max_tokens: 1400,
+        max_tokens: 1500,
         response_format: { type: "json_object" },
         messages: [{ role: "user", content: prompt }],
       });

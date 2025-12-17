@@ -24,11 +24,22 @@ type ContentBlock = {
   measurableResultScore: number;
   spellingGrammarScore: number;
   measurableSuggestions: string[];
-  grammarIssues: { original: string; issue: string }[];
+  grammarIssues: {
+    original: string;
+    corrected: string;
+    issueType: "spelling" | "grammar" | "punctuation" | "word_choice";
+    explanation: string;
+  }[];
 };
 
 type SkillItem = {
   name: string;
+  source:
+    | "explicit_skill_section"
+    | "responsibilities"
+    | "tools_section"
+    | "summary"
+    | "other_jd_text";
   requiredLevel: number;
   resumeLevel: number;
   status: "missing" | "present";
@@ -160,7 +171,8 @@ const ResumeAnalysisReport = () => {
     if (report.content.grammarIssues?.length) {
       addSectionTitle("Spelling & Grammar Issues");
       const issues = report.content.grammarIssues.map(
-        (g) => `${g.original} – ${g.issue}`
+        (g) =>
+          `${g.original}  →  ${g.corrected}  [${g.issueType}]  ${g.explanation}`
       );
       addList(issues);
     }
@@ -177,14 +189,14 @@ const ResumeAnalysisReport = () => {
 
     const hardTable = report.skills.hardSkills.map(
       (s) =>
-        `${s.name}: required ${s.requiredLevel}, resume ${s.resumeLevel}, status ${s.status}`
+        `${s.name} (from ${s.source}): required ${s.requiredLevel}, resume ${s.resumeLevel}, status ${s.status}`
     );
     addSectionTitle("Hard Skills Detail");
     addList(hardTable);
 
     const softTable = report.skills.softSkills.map(
       (s) =>
-        `${s.name}: required ${s.requiredLevel}, resume ${s.resumeLevel}, status ${s.status}`
+        `${s.name} (from ${s.source}): required ${s.requiredLevel}, resume ${s.resumeLevel}, status ${s.status}`
     );
     addSectionTitle("Soft Skills Detail");
     addList(softTable);
@@ -358,21 +370,49 @@ const ResumeAnalysisReport = () => {
                 </ul>
               </div>
 
-              <div>
-                <h3 className="mb-2 font-semibold text-foreground">
-                  Spelling & Grammar
-                </h3>
-                <ul className="space-y-2 text-base">
-                  {report.content.grammarIssues.map((g, i) => (
-                    <li key={i} className="rounded-lg bg-muted px-3 py-2">
-                      <p className="text-foreground">{g.original}</p>
-                      <p className="mt-1 text-sm font-medium text-red-600">
-                        {g.issue}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+                <div>
+    <h3 className="mb-2 font-semibold text-foreground">
+        Spelling & Grammar
+    </h3>
+    {(!report.content.grammarIssues ||
+        report.content.grammarIssues.length === 0) && (
+        <p className="text-base text-muted-foreground">
+        No critical spelling or grammar issues were detected.
+        </p>
+    )}
+
+    {report.content.grammarIssues.length > 0 && (
+        <ul className="space-y-2 text-base">
+        {report.content.grammarIssues.map((g, i) => {
+            const hasCorrection = g.corrected && g.corrected.trim().length > 0;
+            const hasExplanation =
+            g.explanation && g.explanation.trim().length > 0;
+
+            return (
+            <li key={i} className="rounded-lg bg-muted px-3 py-2">
+                {/* Original sentence */}
+                <p className="text-foreground">{g.original}</p>
+
+                {/* Corrected sentence or fallback */}
+                <p className="mt-1 text-emerald-800">
+                <span className="font-semibold">Corrected:</span>{" "}
+                {hasCorrection ? g.corrected : "No change suggested."}
+                </p>
+
+                {/* Issue type + explanation or fallback */}
+                <p className="mt-1 text-sm font-medium text-red-600">
+                [{g.issueType || "info"}]{" "}
+                {hasExplanation
+                    ? g.explanation
+                    : "Minor stylistic improvement; not a strict error."}
+                </p>
+            </li>
+            );
+        })}
+        </ul>
+    )}
+    </div>
+
             </div>
           </section>
 
@@ -412,6 +452,7 @@ const ResumeAnalysisReport = () => {
                   <thead className="bg-muted text-sm font-semibold">
                     <tr>
                       <th className="px-3 py-2">Skill</th>
+                      <th className="px-3 py-2">Source in JD</th>
                       <th className="px-3 py-2">Job Description</th>
                       <th className="px-3 py-2">Your Resume</th>
                     </tr>
@@ -434,6 +475,7 @@ const ResumeAnalysisReport = () => {
                             </span>
                           )}
                         </td>
+                        <td className="px-3 py-2 text-sm">{s.source}</td>
                         <td className="px-3 py-2 text-sm">
                           {s.requiredLevel}
                         </td>
@@ -453,6 +495,7 @@ const ResumeAnalysisReport = () => {
                   <thead className="bg-muted text-sm font-semibold">
                     <tr>
                       <th className="px-3 py-2">Skill</th>
+                      <th className="px-3 py-2">Source in JD</th>
                       <th className="px-3 py-2">Job Description</th>
                       <th className="px-3 py-2">Your Resume</th>
                     </tr>
@@ -475,6 +518,7 @@ const ResumeAnalysisReport = () => {
                             </span>
                           )}
                         </td>
+                        <td className="px-3 py-2 text-sm">{s.source}</td>
                         <td className="px-3 py-2 text-sm">
                           {s.requiredLevel}
                         </td>
