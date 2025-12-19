@@ -10,6 +10,7 @@ import ReactConceptsPage from "./routes/interview/ReactConceptsPage";
 import Nextjs15ConceptsPage from "./routes/interview/Nextjs15ConceptsPage";
 import ResourcesCoverLetter from "./pages/ResourcesCoverLetter";
 import ResourcesRoadmap from "./pages/ResourcesRoadmap";
+import RoadmapResult from "./pages/RoadmapResult";
 import Jobs from "./pages/Jobs";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -35,6 +36,7 @@ const App = () => (
 
         <Route path="/resources/cover-letter" element={<ResourcesCoverLetter />} />
         <Route path="/resources/roadmap" element={<ResourcesRoadmap />} />
+        <Route path="/resources/roadmap/roadmap-result" element={<RoadmapResult/>} />
         <Route path="/jobs" element={<Jobs />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
