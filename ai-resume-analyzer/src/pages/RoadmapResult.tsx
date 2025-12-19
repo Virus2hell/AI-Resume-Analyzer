@@ -189,30 +189,36 @@ const RoadmapResult = () => {
               </div>
             </section>
 
-            {/* YouTube resources */}
+            {/* YouTube / learning resources */}
             <section>
-              <h2 className="text-xl font-semibold">YouTube / Learning Resources</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
+            <h2 className="text-xl font-semibold">YouTube / Learning Resources</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
                 Use these playlists and channels to cover the roadmap topics in depth.
-              </p>
+            </p>
 
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
                 {roadmapData.youtubeResources.map((resource) => (
-                  <div key={resource.url} className="card-base">
+                <div key={resource.url} className="card-base">
                     <h3 className="text-sm font-semibold">{resource.title}</h3>
                     <p className="mt-1 text-[11px] text-muted-foreground">
-                      {resource.description}
+                    {resource.description}
                     </p>
                     <p className="mt-2 text-[11px]">
-                      <span className="font-medium">Skills:</span>{" "}
-                      {resource.skillsCovered.join(", ")}
+                    <span className="font-medium">Skills:</span>{" "}
+                    {resource.skillsCovered.join(", ")}
                     </p>
-                    <p className="mt-1 text-[11px] text-primary break-all">
-                      {resource.url}
-                    </p>
-                  </div>
+                    {/* clickable link */}
+                    <a
+                    href={resource.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-1 inline-block text-[11px] text-primary underline break-all"
+                    >
+                    {resource.url}
+                    </a>
+                </div>
                 ))}
-              </div>
+            </div>
             </section>
           </div>
         </div>

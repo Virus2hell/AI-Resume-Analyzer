@@ -445,7 +445,10 @@ YouTube / learning resources:
     "description": string,
     "skillsCovered": string[]
   }
+- "url" MUST be a full, direct YouTube URL starting with "https://www.youtube.com/..." (no bit.ly or other shorteners).
 - Prefer highly rated, free resources from channels like freeCodeCamp.org, Traversy Media, The Net Ninja, Hitesh Choudhary, CodeWithHarry, Web Dev Simplified, etc., matching the required stack.
+- Example of a valid url: "https://www.youtube.com/watch?v=Zftx68K-1D4".
+
 
 Output format (VERY IMPORTANT):
 Return ONLY valid JSON using this exact top-level structure:
