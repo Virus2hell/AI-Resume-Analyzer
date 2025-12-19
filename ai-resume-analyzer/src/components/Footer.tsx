@@ -66,7 +66,7 @@ const Footer = () => {
                   to="/resources/interview-prep"
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
-                  Interview Prep
+                  Interview Prep Material
                 </Link>
               </li>
               <li>

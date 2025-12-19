@@ -28,7 +28,7 @@ const toolItems = [
 const resourceItems = [
   { name: "Resume Writing", path: "/resources/resume-writing", icon: FileText },
   {
-    name: "Interview Prep",
+    name: "Interview Prep Material",
     path: "/resources/interview-prep",
     icon: MessageCircle,
   },
