@@ -122,7 +122,7 @@ const Footer = () => {
           </div>
 
           {/* Contact */}
-          <div className="min-w-[180px]">
+          {/* <div className="min-w-[180px]">
             <h4 className="mb-4 text-sm font-semibold text-foreground">
               Contact
             </h4>
@@ -130,7 +130,7 @@ const Footer = () => {
               <li>atharvanarvekar269@gmai.com</li>
               <li>+987654321</li>
             </ul>
-          </div>
+          </div> */}
         </div>
 
         <div className="mt-12 border-t border-border pt-8 text-center text-sm text-muted-foreground">

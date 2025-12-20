@@ -38,43 +38,6 @@ const Contact = () => {
             </p>
           </div>
 
-          <div className="grid gap-8 lg:grid-cols-3">
-            {/* Contact Info */}
-            <div className="space-y-6 lg:col-span-1">
-              <div className="card-base flex items-start gap-4">
-                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                  <Mail className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">Email</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">hello@resumeai.com</p>
-                </div>
-              </div>
-
-              <div className="card-base flex items-start gap-4">
-                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                  <Phone className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">Phone</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">+1 (555) 123-4567</p>
-                </div>
-              </div>
-
-              <div className="card-base flex items-start gap-4">
-                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                  <MapPin className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">Office</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    123 Innovation Drive<br />
-                    San Francisco, CA 94105
-                  </p>
-                </div>
-              </div>
-            </div>
-
             {/* Contact Form */}
             <div className="card-base lg:col-span-2">
               {isSubmitted ? (
@@ -174,7 +137,6 @@ const Contact = () => {
                 </form>
               )}
             </div>
-          </div>
         </div>
       </div>
     </Layout>
