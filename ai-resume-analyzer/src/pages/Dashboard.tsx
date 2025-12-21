@@ -1,34 +1,30 @@
-// src/pages/Dashboard.tsx
-import { useUser, SignOutButton } from "@clerk/clerk-react";
+import { useAuth } from "@/context/AuthContext";
 
 const Dashboard = () => {
-  const { user } = useUser();
-
-  const fullName = user?.fullName ?? "";
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const phone = user?.primaryPhoneNumber?.phoneNumber ?? "";
+  const { user, signOut } = useAuth();
 
   return (
     <div className="section-container py-12">
       <div className="mx-auto max-w-xl card-base space-y-4">
         <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+
         <div className="space-y-2 text-sm text-muted-foreground">
           <p>
-            <span className="font-semibold text-foreground">Name:</span>{" "}
-            {fullName}
+            <span className="font-semibold text-foreground">User ID:</span>{" "}
+            {user?.id}
           </p>
           <p>
             <span className="font-semibold text-foreground">Email:</span>{" "}
-            {email}
-          </p>
-          <p>
-            <span className="font-semibold text-foreground">Phone:</span>{" "}
-            {phone || "Not set"}
+            {user?.email}
           </p>
         </div>
-        <SignOutButton>
-          <button className="btn-secondary w-full mt-4">Log out</button>
-        </SignOutButton>
+
+        <button
+          onClick={signOut}
+          className="btn-secondary w-full mt-4"
+        >
+          Log out
+        </button>
       </div>
     </div>
   );

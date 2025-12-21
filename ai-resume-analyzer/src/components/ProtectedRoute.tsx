@@ -1,26 +1,17 @@
-// src/components/ProtectedRoute.tsx
 import { ReactNode } from "react";
-import { useUser } from "@clerk/clerk-react";
 import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
-interface ProtectedRouteProps {
-  children: ReactNode;
-}
-
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { isSignedIn, isLoaded } = useUser();
+const ProtectedRoute = ({ children }: { children: ReactNode }) => {
+  const { user, loading } = useAuth();
   const location = useLocation();
 
-  if (!isLoaded) {
-    // while Clerk loads, you can show a spinner or nothing
-    return null;
-  }
+  if (loading) return null;
 
-  if (!isSignedIn) {
-    // redirect to sign-in and remember where user wanted to go
+  if (!user) {
     return (
       <Navigate
-        to="/sign-in"
+        to="/auth"
         replace
         state={{ from: location.pathname }}
       />

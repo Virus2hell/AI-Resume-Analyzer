@@ -11,7 +11,7 @@ import {
   Map,
   Gauge,
 } from "lucide-react";
-import { SignedIn, SignedOut, UserButton } from "@clerk/clerk-react";
+import { useAuth } from "@/context/AuthContext";
 
 const navItems = [
   { name: "Home", path: "/" },
@@ -45,6 +45,7 @@ const Header = () => {
   const resourcesTimeoutRef = useRef<number | null>(null);
 
   const location = useLocation();
+  const { user, signOut } = useAuth();
 
   const isToolPath =
     location.pathname === "/resume-analysis" ||
@@ -198,21 +199,28 @@ const Header = () => {
 
           {/* Auth controls - Desktop (right side) */}
           <div className="hidden lg:flex items-center gap-3">
-            <SignedOut>
-              <Link to="/sign-in" className="btn-ghost">
-                Log in
-              </Link>
-              <Link to="/sign-up" className="btn-primary">
-                Sign up
-              </Link>
-            </SignedOut>
-
-            <SignedIn>
-              <Link to="/dashboard" className="btn-ghost">
-                Dashboard
-              </Link>
-              <UserButton afterSignOutUrl="/" />
-            </SignedIn>
+            {!user ? (
+              <>
+                <Link to="/auth" className="btn-ghost">
+                  Log in
+                </Link>
+                <Link to="/auth" className="btn-primary">
+                  Sign up
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link to="/dashboard" className="btn-ghost">
+                  Dashboard
+                </Link>
+                <button
+                  onClick={signOut}
+                  className="btn-secondary"
+                >
+                  Log out
+                </button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -303,32 +311,43 @@ const Header = () => {
               ))}
 
               {/* Mobile auth buttons */}
-              <SignedOut>
-                <Link
-                  to="/sign-in"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="btn-ghost mt-2 w-full text-center"
-                >
-                  Log in
-                </Link>
-                <Link
-                  to="/sign-up"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="btn-primary mt-2 w-full text-center"
-                >
-                  Sign up
-                </Link>
-              </SignedOut>
-
-              <SignedIn>
-                <Link
-                  to="/dashboard"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="btn-ghost mt-2 w-full text-center"
-                >
-                  Dashboard
-                </Link>
-              </SignedIn>
+              {!user ? (
+                <>
+                  <Link
+                    to="/auth"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="btn-ghost mt-2 w-full text-center"
+                  >
+                    Log in
+                  </Link>
+                  <Link
+                    to="/auth"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="btn-primary mt-2 w-full text-center"
+                  >
+                    Sign up
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="btn-ghost mt-2 w-full text-center"
+                  >
+                    Dashboard
+                  </Link>
+                  <button
+                    onClick={() => {
+                      signOut();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="btn-secondary mt-2 w-full text-center"
+                  >
+                    Log out
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}
