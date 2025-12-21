@@ -33,15 +33,10 @@ const App = () => (
         {/* Supabase auth page (login + signup in one UI) */}
         <Route path="/auth" element={<AuthPage />} />
 
-        {/* Protected routes */}
-        <Route
-          path="/resume-analysis"
-          element={
-            <ProtectedRoute>
-              <ResumeAnalysis />
-            </ProtectedRoute>
-          }
-        />
+        {/* Resume analysis page is PUBLIC; button handles auth check */}
+        <Route path="/resume-analysis" element={<ResumeAnalysis />} />
+
+        {/* Protected routes that must require login */}
         <Route
           path="/resume-analysis/report"
           element={

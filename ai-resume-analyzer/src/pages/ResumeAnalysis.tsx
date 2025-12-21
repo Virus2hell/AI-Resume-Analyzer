@@ -1,14 +1,11 @@
 // src/pages/ResumeAnalysis.tsx
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Layout from "@/components/Layout";
 import FileUpload from "@/components/FileUpload";
-import {
-  Loader2,
-  Sparkles,
-  AlertCircle,
-} from "lucide-react";
+import { Loader2, Sparkles, AlertCircle } from "lucide-react";
 import { extractTextFromFile } from "@/lib/pdfExtract";
+import { useAuth } from "@/context/AuthContext";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
@@ -21,6 +18,8 @@ const ResumeAnalysis = () => {
   const [error, setError] = useState<string | null>(null);
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth(); // null when not logged in
 
   const handleFileSelect = async (file: File) => {
     setSelectedFile(file);
@@ -44,6 +43,13 @@ const ResumeAnalysis = () => {
   };
 
   const handleAnalyze = async () => {
+    // 1. If not logged in, send to auth page (or show modal)
+    if (!user) {
+      navigate("/auth", { state: { from: location.pathname } });
+      return;
+    }
+
+    // 2. Normal validation
     if (!selectedFile || !jobDescription.trim()) {
       setError("Please upload a resume and enter a job description.");
       return;
@@ -89,6 +95,12 @@ const ResumeAnalysis = () => {
       setIsAnalyzing(false);
     }
   };
+
+  const buttonDisabled =
+    isAnalyzing ||
+    !selectedFile ||
+    !jobDescription.trim() ||
+    !resumeText.trim();
 
   return (
     <Layout>
@@ -137,12 +149,7 @@ const ResumeAnalysis = () => {
 
             <button
               onClick={handleAnalyze}
-              disabled={
-                isAnalyzing ||
-                !selectedFile ||
-                !jobDescription.trim() ||
-                !resumeText.trim()
-              }
+              disabled={buttonDisabled}
               className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isAnalyzing ? (
@@ -157,6 +164,13 @@ const ResumeAnalysis = () => {
                 </>
               )}
             </button>
+
+            {!user && (
+              <p className="text-xs text-center text-muted-foreground">
+                You need to be logged in to run the analysis. You can still
+                upload your resume and job description before logging in.
+              </p>
+            )}
           </div>
         </div>
       </div>
