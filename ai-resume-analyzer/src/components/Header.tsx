@@ -1,3 +1,4 @@
+// src/components/Header.tsx
 import { useState, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -10,11 +11,10 @@ import {
   Map,
   Gauge,
 } from "lucide-react";
+import { SignedIn, SignedOut, UserButton } from "@clerk/clerk-react";
 
 const navItems = [
   { name: "Home", path: "/" },
-  // Tools dropdown will be inserted here
-  // Resources dropdown will also be inserted here
   { name: "Jobs", path: "/jobs" },
   { name: "About Us", path: "/about" },
   { name: "Contact Us", path: "/contact" },
@@ -38,7 +38,6 @@ const resourceItems = [
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [isResourcesOpen, setIsResourcesOpen] = useState(false);
 
@@ -80,7 +79,9 @@ const Header = () => {
             className="flex items-center gap-2 text-xl font-bold text-foreground transition-opacity hover:opacity-80"
           >
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <span className="text-sm font-bold text-primary-foreground">K</span>
+              <span className="text-sm font-bold text-primary-foreground">
+                K
+              </span>
             </div>
             <span>KeyWorded</span>
           </Link>
@@ -97,7 +98,7 @@ const Header = () => {
               Home
             </Link>
 
-            {/* Tools dropdown with delay */}
+            {/* Tools dropdown */}
             <div
               className="relative"
               onMouseEnter={() =>
@@ -139,7 +140,7 @@ const Header = () => {
               )}
             </div>
 
-            {/* Resources dropdown with delay */}
+            {/* Resources dropdown */}
             <div
               className="relative"
               onMouseEnter={() =>
@@ -195,11 +196,23 @@ const Header = () => {
             ))}
           </div>
 
-          {/* CTA Button - Desktop */}
-          <div className="hidden lg:block">
-            <Link to="/resume-analysis" className="btn-primary">
-              Analyze Resume
-            </Link>
+          {/* Auth controls - Desktop (right side) */}
+          <div className="hidden lg:flex items-center gap-3">
+            <SignedOut>
+              <Link to="/sign-in" className="btn-ghost">
+                Log in
+              </Link>
+              <Link to="/sign-up" className="btn-primary">
+                Sign up
+              </Link>
+            </SignedOut>
+
+            <SignedIn>
+              <Link to="/dashboard" className="btn-ghost">
+                Dashboard
+              </Link>
+              <UserButton afterSignOutUrl="/" />
+            </SignedIn>
           </div>
 
           {/* Mobile Menu Button */}
@@ -212,7 +225,7 @@ const Header = () => {
           </button>
         </nav>
 
-        {/* Mobile Navigation (unchanged) */}
+        {/* Mobile Navigation */}
         {isMobileMenuOpen && (
           <div className="animate-fade-in border-t border-border py-4 lg:hidden">
             <div className="flex flex-col gap-2">
@@ -289,13 +302,33 @@ const Header = () => {
                 </Link>
               ))}
 
-              <Link
-                to="/resume-analysis"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="btn-primary mt-2 w-full"
-              >
-                Analyze Resume
-              </Link>
+              {/* Mobile auth buttons */}
+              <SignedOut>
+                <Link
+                  to="/sign-in"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="btn-ghost mt-2 w-full text-center"
+                >
+                  Log in
+                </Link>
+                <Link
+                  to="/sign-up"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="btn-primary mt-2 w-full text-center"
+                >
+                  Sign up
+                </Link>
+              </SignedOut>
+
+              <SignedIn>
+                <Link
+                  to="/dashboard"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="btn-ghost mt-2 w-full text-center"
+                >
+                  Dashboard
+                </Link>
+              </SignedIn>
             </div>
           </div>
         )}
