@@ -1,9 +1,13 @@
 // src/pages/ResumeAnalysisReport.tsx
 import { useLocation, useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
-import { Download, ArrowLeft } from "lucide-react";
-import { useRef } from "react";
+import { Download, ArrowLeft, Mail } from "lucide-react";
+import { useRef, useState } from "react";
 import html2pdf from "html2pdf.js";
+import { useAuth } from "@/context/AuthContext";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
 type Overview = {
   matchScore: number;
@@ -101,9 +105,12 @@ type DetailedReport = {
 const ResumeAnalysisReport = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const report = (location.state as { report?: DetailedReport })?.report;
 
   const pdfRef = useRef<HTMLDivElement | null>(null);
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailMessage, setEmailMessage] = useState<string | null>(null);
 
   if (!report) {
     navigate("/resume-analysis");
@@ -124,6 +131,43 @@ const ResumeAnalysisReport = () => {
     await html2pdf().set(opt).from(pdfRef.current).save();
   };
 
+  const handleEmailReport = async () => {
+    if (!pdfRef.current || !user?.email) return;
+
+    setEmailMessage(null);
+    setEmailSending(true);
+
+    try {
+      const html = pdfRef.current.innerHTML;
+
+      const res = await fetch(`${API_BASE_URL}/api/send-resume-report`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: user.email,
+          html,
+        }),
+      });
+
+      const json = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(json.error || "Failed to email report");
+      }
+
+      setEmailMessage(
+        "Report emailed successfully. Please check your inbox (and spam folder)."
+      );
+    } catch (err: any) {
+      console.error("Email report error", err);
+      setEmailMessage(
+        err.message || "Could not email your report. Please try again."
+      );
+    } finally {
+      setEmailSending(false);
+    }
+  };
+
   const scoreBadgeClass = (score: number) =>
     score >= 80
       ? "text-emerald-600 bg-emerald-50"
@@ -135,7 +179,7 @@ const ResumeAnalysisReport = () => {
     <Layout>
       <div className="section-container py-10">
         <div className="mx-auto max-w-5xl space-y-8">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <button
               onClick={() => navigate("/resume-analysis")}
               className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary"
@@ -144,14 +188,31 @@ const ResumeAnalysisReport = () => {
               Back
             </button>
 
-            <button
-              onClick={handleDownloadPdf}
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-            >
-              <Download className="h-4 w-4" />
-              Download Report as PDF
-            </button>
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={handleDownloadPdf}
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              >
+                <Download className="h-4 w-4" />
+                Download Report as PDF
+              </button>
+
+              {user?.email && (
+                <button
+                  onClick={handleEmailReport}
+                  disabled={emailSending}
+                  className="inline-flex items-center gap-2 rounded-lg border border-primary px-5 py-2 text-sm font-medium text-primary hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <Mail className="h-4 w-4" />
+                  {emailSending ? "Emailing..." : "Email me this report"}
+                </button>
+              )}
+            </div>
           </div>
+
+          {emailMessage && (
+            <p className="text-sm text-muted-foreground">{emailMessage}</p>
+          )}
 
           {/* Everything inside pdfRef will be captured into the PDF */}
           <div ref={pdfRef} className="space-y-8">

@@ -1,9 +1,10 @@
-
 // server/index.ts
 import express, { Request, Response } from "express";
 import cors from "cors";
 import Groq from "groq-sdk";
 import dotenv from "dotenv";
+import nodemailer from "nodemailer"
+import htmlPdf from "html-pdf-node";
 
 dotenv.config();
 
@@ -204,7 +205,6 @@ Important:
   }
 );
 
-
 /**
  * Cover letter generation
  */
@@ -288,7 +288,6 @@ ${jobDescription.slice(0, 4000)}
 
 /**
  * NEW: ATS-style resume-only analysis
- * Returns ATS score + detailed feedback and structure analysis
  */
 app.post("/api/ats-analyze-resume", async (req: Request, res: Response) => {
   try {
@@ -353,7 +352,6 @@ ${resumeText.slice(0, 8000)}
 });
 
 // roadmap feature
-
 interface RoadmapNode {
   id: string;
   title: string;
@@ -384,17 +382,15 @@ interface RoadmapPayload {
 /**
  * Job-description → roadmap, projects & resources
  */
-app.post(
-  "/api/generate-roadmap",
-  async (req: Request, res: Response) => {
-    try {
-      const { jobDescription } = req.body as { jobDescription: string };
+app.post("/api/generate-roadmap", async (req: Request, res: Response) => {
+  try {
+    const { jobDescription } = req.body as { jobDescription: string };
 
-      if (!jobDescription?.trim()) {
-        return res.status(400).json({ error: "Missing jobDescription" });
-      }
+    if (!jobDescription?.trim()) {
+      return res.status(400).json({ error: "Missing jobDescription" });
+    }
 
-      const prompt = `
+    const prompt = `
 You are an expert technical mentor and hiring manager.
 
 Given a complete job description, you must:
@@ -449,7 +445,6 @@ YouTube / learning resources:
 - Prefer highly rated, free resources from channels like freeCodeCamp.org, Traversy Media, The Net Ninja, Hitesh Choudhary, CodeWithHarry, Web Dev Simplified, etc., matching the required stack.
 - Example of a valid url: "https://www.youtube.com/watch?v=Zftx68K-1D4".
 
-
 Output format (VERY IMPORTANT):
 Return ONLY valid JSON using this exact top-level structure:
 
@@ -469,37 +464,96 @@ JOB DESCRIPTION (full text):
 ${jobDescription.slice(0, 6000)}
 `.trim();
 
-      const completion = await groq.chat.completions.create({
-        model: "llama-3.3-70b-versatile",
-        temperature: 0.3,
-        max_tokens: 2000,
-        response_format: { type: "json_object" },
-        messages: [{ role: "user", content: prompt }],
-      });
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      temperature: 0.3,
+      max_tokens: 2000,
+      response_format: { type: "json_object" },
+      messages: [{ role: "user", content: prompt }],
+    });
 
-      const content = completion.choices[0]?.message?.content;
-      if (!content) {
-        return res
-          .status(500)
-          .json({ error: "Empty response from Groq for roadmap generation" });
-      }
-
-      let parsed: RoadmapPayload;
-      try {
-        parsed = JSON.parse(content);
-      } catch (err) {
-        console.error("JSON parse error from Groq (roadmap):", err, content);
-        return res
-          .status(500)
-          .json({ error: "Failed to parse roadmap JSON from model" });
-      }
-
-      return res.json(parsed);
-    } catch (error) {
-      console.error("Groq roadmap generation error:", error);
+    const content = completion.choices[0]?.message?.content;
+    if (!content) {
       return res
         .status(500)
-        .json({ error: "Failed to generate roadmap. Please try again." });
+        .json({ error: "Empty response from Groq for roadmap generation" });
+    }
+
+    let parsed: RoadmapPayload;
+    try {
+      parsed = JSON.parse(content);
+    } catch (err) {
+      console.error("JSON parse error from Groq (roadmap):", err, content);
+      return res
+        .status(500)
+        .json({ error: "Failed to parse roadmap JSON from model" });
+    }
+
+    return res.json(parsed);
+  } catch (error) {
+    console.error("Groq roadmap generation error:", error);
+    return res
+      .status(500)
+      .json({ error: "Failed to generate roadmap. Please try again." });
+  }
+});
+
+/**
+ * NEW: Email resume analysis report as PDF
+ * Body: { email: string; html: string }
+ */
+app.post(
+  "/api/send-resume-report",
+  async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { email, html } = req.body as { email: string; html: string };
+
+      if (!email || !html) {
+        return res.status(400).json({ error: "Missing email or html" });
+      }
+
+      // 1. Render HTML to PDF buffer
+      const file = { content: html };
+      const pdfBuffer: Buffer = await htmlPdf.generatePdf(file, {
+        format: "A4",
+      });
+
+      // 2. Create SMTP transporter
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: Number(process.env.SMTP_PORT || 587),
+        secure: false,
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+        tls: {
+          rejectUnauthorized: false, // DEV ONLY, not for production
+        },
+      });
+
+      // 3. Send email with attachment
+      await transporter.sendMail({
+        from: `"KeyWorded" <${process.env.SMTP_FROM || "no-reply@keyworded.in"}>`,
+        to: email,
+        subject: "Your KeyWorded resume analysis report",
+        html: `<p>Hi,</p>
+<p>Thanks for using <strong>KeyWorded</strong>. Your resume analysis report is attached as a PDF.</p>
+<p>Happy job hunting!</p>`,
+        attachments: [
+          {
+            filename: "resume-analysis-report.pdf",
+            content: pdfBuffer,
+          },
+        ],
+      });
+
+      return res.json({ ok: true });
+    } catch (err: any) {
+      console.error("send-resume-report error:", err);
+      return res
+        .status(500)
+        .json({ error: err.message || "Failed to send report email" });
     }
   }
 );
