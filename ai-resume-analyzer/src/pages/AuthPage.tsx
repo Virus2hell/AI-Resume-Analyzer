@@ -33,40 +33,61 @@ const AuthPage = () => {
     navigate(from, { replace: true });
   };
 
+  const title = mode === "login" ? "Welcome back" : "Create your KeyWorded account";
+  const subtitle =
+    mode === "login"
+      ? "Log in to access your saved analyses and dashboard."
+      : "Sign up to unlock resume analysis and personalized tools.";
+
+  const emailHint =
+    mode === "signup"
+      ? "You will receive a verification email after signing up."
+      : "Use the email you verified during sign up.";
+
   return (
-    <div className="section-container py-12 flex justify-center">
-      <div className="w-full max-w-md card-base space-y-4">
-        <h1 className="text-2xl font-bold text-foreground text-center">
-          {mode === "login" ? "Log in to KeyWorded" : "Create your account"}
-        </h1>
+    <div className="min-h-screen flex items-center justify-center bg-muted/40 px-4">
+      <div className="w-full max-w-md card-base space-y-6">
+        <div className="text-center space-y-2">
+          <h1 className="text-2xl font-bold text-foreground">{title}</h1>
+          <p className="text-sm text-muted-foreground">{subtitle}</p>
+        </div>
 
         {error && (
-          <p className="text-sm text-destructive bg-destructive/10 rounded-md px-3 py-2">
-            {error}
-          </p>
+          <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {error === "Email not confirmed"
+              ? "Please confirm your email using the link sent to your inbox before logging in."
+              : error}
+          </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
+          <div className="space-y-1">
+            <label className="block text-sm font-medium">Email</label>
             <input
               type="email"
               required
               className="input-base w-full"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
             />
+            <p className="text-[11px] text-muted-foreground">{emailHint}</p>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Password</label>
+          <div className="space-y-1">
+            <label className="block text-sm font-medium">Password</label>
             <input
               type="password"
               required
+              minLength={6}
               className="input-base w-full"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              placeholder="At least 6 characters"
             />
+            <p className="text-[11px] text-muted-foreground">
+              Use at least 6 characters. For better security, include letters, numbers, and symbols.
+            </p>
           </div>
 
           <button
@@ -78,35 +99,43 @@ const AuthPage = () => {
               ? "Please wait..."
               : mode === "login"
               ? "Log in"
-              : "Sign up"}
+              : "Create account"}
           </button>
         </form>
 
-        <p className="text-xs text-center text-muted-foreground">
-          {mode === "login" ? (
-            <>
-              Don&apos;t have an account?{" "}
-              <button
-                type="button"
-                className="text-primary underline"
-                onClick={() => setMode("signup")}
-              >
-                Sign up
-              </button>
-            </>
-          ) : (
-            <>
-              Already have an account?{" "}
-              <button
-                type="button"
-                className="text-primary underline"
-                onClick={() => setMode("login")}
-              >
-                Log in
-              </button>
-            </>
+        <div className="border-t border-border pt-4 text-center space-y-1">
+          <p className="text-xs text-muted-foreground">
+            {mode === "login" ? (
+              <>
+                Don&apos;t have an account?{" "}
+                <button
+                  type="button"
+                  className="text-primary underline"
+                  onClick={() => setMode("signup")}
+                >
+                  Sign up
+                </button>
+              </>
+            ) : (
+              <>
+                Already have an account?{" "}
+                <button
+                  type="button"
+                  className="text-primary underline"
+                  onClick={() => setMode("login")}
+                >
+                  Log in
+                </button>
+              </>
+            )}
+          </p>
+
+          {mode === "signup" && (
+            <p className="text-[11px] text-muted-foreground">
+              By creating an account, you agree to receive transactional emails such as verification and security alerts.
+            </p>
           )}
-        </p>
+        </div>
       </div>
     </div>
   );
