@@ -117,35 +117,56 @@ const ResumeAnalysisReport = () => {
     return null;
   }
 
+  const pdfOptions: any = {
+    margin: [10, 10, 10, 10],
+    filename: "resume-analysis-report.pdf",
+    image: { type: "jpeg", quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+  };
+
   const handleDownloadPdf = async () => {
     if (!pdfRef.current) return;
+    await (html2pdf() as any).set(pdfOptions).from(pdfRef.current).save();
+  };
 
-    const opt: any = {
-      margin: [10, 10, 10, 10],
-      filename: "resume-analysis-report.pdf",
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-    };
+  // Generate same PDF as a Blob so it can be sent to the backend
+  const generatePdfBlob = async (): Promise<Blob | null> => {
+    if (!pdfRef.current) return null;
 
-    await html2pdf().set(opt).from(pdfRef.current).save();
+    // html2pdf.js returns a jsPDF instance; use its output method. [web:249][web:259]
+    const worker: any = (html2pdf() as any).set(pdfOptions).from(pdfRef.current);
+    const jsPdfInstance = await worker.toPdf().get("pdf");
+    const blob = jsPdfInstance.output("blob");
+    return blob;
   };
 
   const handleEmailReport = async () => {
-    if (!pdfRef.current || !user?.email) return;
+    if (!user?.email) return;
 
     setEmailMessage(null);
     setEmailSending(true);
 
     try {
-      const html = pdfRef.current.innerHTML;
+      const blob = await generatePdfBlob();
+      if (!blob) {
+        throw new Error("Could not generate PDF");
+      }
+
+      const arrayBuffer = await blob.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+      let binary = "";
+      for (let i = 0; i < uint8Array.length; i++) {
+        binary += String.fromCharCode(uint8Array[i]);
+      }
+      const pdfBase64 = btoa(binary);
 
       const res = await fetch(`${API_BASE_URL}/api/send-resume-report`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: user.email,
-          html,
+          pdfBase64,
         }),
       });
 

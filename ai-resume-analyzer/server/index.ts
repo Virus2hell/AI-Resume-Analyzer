@@ -3,8 +3,7 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import Groq from "groq-sdk";
 import dotenv from "dotenv";
-import nodemailer from "nodemailer"
-import htmlPdf from "html-pdf-node";
+import nodemailer from "nodemailer";
 
 dotenv.config();
 
@@ -500,25 +499,25 @@ ${jobDescription.slice(0, 6000)}
 
 /**
  * NEW: Email resume analysis report as PDF
- * Body: { email: string; html: string }
+ * Body: { email: string; pdfBase64: string }
  */
 app.post(
   "/api/send-resume-report",
   async (req: Request, res: Response): Promise<Response> => {
     try {
-      const { email, html } = req.body as { email: string; html: string };
+      const { email, pdfBase64 } = req.body as {
+        email: string;
+        pdfBase64: string;
+      };
 
-      if (!email || !html) {
-        return res.status(400).json({ error: "Missing email or html" });
+      if (!email || !pdfBase64) {
+        return res
+          .status(400)
+          .json({ error: "Missing email or pdfBase64" });
       }
 
-      // 1. Render HTML to PDF buffer
-      const file = { content: html };
-      const pdfBuffer: Buffer = await htmlPdf.generatePdf(file, {
-        format: "A4",
-      });
+      const pdfBuffer = Buffer.from(pdfBase64, "base64");
 
-      // 2. Create SMTP transporter
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: Number(process.env.SMTP_PORT || 587),
@@ -528,13 +527,14 @@ app.post(
           pass: process.env.SMTP_PASS,
         },
         tls: {
-          rejectUnauthorized: false, // DEV ONLY, not for production
+          rejectUnauthorized: false, // if needed for local dev with Gmail
         },
       });
 
-      // 3. Send email with attachment
       await transporter.sendMail({
-        from: `"KeyWorded" <${process.env.SMTP_FROM || "no-reply@keyworded.in"}>`,
+        from: `"KeyWorded" <${
+          process.env.SMTP_FROM || "no-reply@keyworded.in"
+        }>`,
         to: email,
         subject: "Your KeyWorded resume analysis report",
         html: `<p>Hi,</p>
