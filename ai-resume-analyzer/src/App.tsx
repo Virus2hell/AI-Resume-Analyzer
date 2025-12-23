@@ -60,18 +60,31 @@ const App = () => (
           path="/resources/resume-writing"
           element={<ResourcesResumeWriting />}
         />
+
+        {/* Interview Prep: list page is public */}
         <Route
           path="/resources/interview-prep"
           element={<ResourcesInterviewPrep />}
         />
+
+        {/* Concept detail pages are protected */}
         <Route
           path="/resources/interview-prep/react-concepts"
-          element={<ReactConceptsPage />}
+          element={
+            <ProtectedRoute>
+              <ReactConceptsPage />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/resources/interview-prep/nextjs-15-concepts"
-          element={<Nextjs15ConceptsPage />}
+          element={
+            <ProtectedRoute>
+              <Nextjs15ConceptsPage />
+            </ProtectedRoute>
+          }
         />
+
         <Route
           path="/resources/cover-letter"
           element={<ResourcesCoverLetter />}

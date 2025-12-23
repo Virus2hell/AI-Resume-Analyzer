@@ -1,7 +1,9 @@
+// src/pages/ResourcesInterviewPrep.tsx
 import { useMemo, useState } from "react";
 import Layout from "@/components/Layout";
 import { Search } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 type ConceptCard = {
   id: string;
@@ -31,6 +33,9 @@ const concepts: ConceptCard[] = [
 
 const ResourcesInterviewPrep = () => {
   const [query, setQuery] = useState("");
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const filteredConcepts = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -43,6 +48,15 @@ const ResourcesInterviewPrep = () => {
       );
     });
   }, [query]);
+
+  const handleCardClick = (path: string) => {
+    if (!user) {
+      // send user to auth, then back to this concept page after login
+      navigate("/auth", { state: { from: path || location.pathname } });
+      return;
+    }
+    navigate(path);
+  };
 
   return (
     <Layout>
@@ -82,10 +96,11 @@ const ResourcesInterviewPrep = () => {
             )}
 
             {filteredConcepts.map((concept) => (
-              <Link
+              <button
                 key={concept.id}
-                to={concept.path}
-                className="card-base flex h-40 flex-col justify-between transition-transform hover:-translate-y-1 hover:shadow-hover"
+                type="button"
+                onClick={() => handleCardClick(concept.path)}
+                className="card-base flex h-40 flex-col justify-between text-left transition-transform hover:-translate-y-1 hover:shadow-hover"
               >
                 <div>
                   <h2 className="text-lg font-semibold text-foreground">
@@ -105,9 +120,16 @@ const ResourcesInterviewPrep = () => {
                     </span>
                   ))}
                 </div>
-              </Link>
+              </button>
             ))}
           </div>
+
+          {!user && (
+            <p className="mt-6 text-xs text-center text-muted-foreground">
+              You can browse the interview prep topics, but you need to create
+              a free account to open any detailed concept page.
+            </p>
+          )}
         </div>
       </div>
     </Layout>
