@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import Layout from '@/components/Layout';
-import { FileSearch, Target, Zap, Shield, ArrowRight } from 'lucide-react';
+import { FileSearch, Target, Zap, Shield, ArrowRight, BookOpenCheck, FileText, Route, MousePointer2 } from 'lucide-react';
 
 const features = [
   {
@@ -17,6 +17,30 @@ const features = [
     icon: Zap,
     title: 'Instant Feedback',
     description: 'Receive actionable suggestions to improve your resume within seconds.',
+  },
+  {
+    icon: BookOpenCheck,
+    title: 'Interview Prep Material',
+    description:
+      'Access curated core concepts, cheat sheets, and example questions tailored to your target roles and tech stack.',
+  },
+  {
+    icon: FileText,
+    title: 'AI Cover Letter Generator',
+    description:
+      'Generate personalized cover letters using AI that align your experience with each specific job description.',
+  },
+  {
+    icon: Route,
+    title: 'Custom Learning Roadmap',
+    description:
+      'Get a step-by-step, AI-generated roadmap based on the job description to close your skill gaps efficiently.',
+  },
+  {
+    icon: MousePointer2,
+    title: 'User-Friendly Experience',
+    description:
+      'Navigate a clean, responsive interface designed for fast uploads, clear insights, and distraction-free job prep.',
   },
   {
     icon: Shield,
