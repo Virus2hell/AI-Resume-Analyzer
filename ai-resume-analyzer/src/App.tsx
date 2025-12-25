@@ -15,6 +15,7 @@ import CSharpConceptsPage from "./routes/interview/CSharpConceptsPage";
 import JavascriptBeginnerPage from "./routes/interview/JavascriptBeginnerPage";
 import JavascriptIntermediatePage from "./routes/interview/JavascriptIntermediatePage";
 import JavascriptAdvancePage from "./routes/interview/JavascriptAdvancePage";
+import PythonConceptsPage from "./routes/interview/PythonconceptsPage";
 
 import ResourcesCoverLetter from "./pages/ResourcesCoverLetter";
 import ResourcesRoadmap from "./pages/ResourcesRoadmap";
@@ -119,6 +120,14 @@ const App = () => (
           element={
             <ProtectedRoute>
               < JavascriptAdvancePage/>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/resources/interview-prep/python-concepts"
+          element={
+            <ProtectedRoute>
+              < PythonConceptsPage/>
             </ProtectedRoute>
           }
         />
