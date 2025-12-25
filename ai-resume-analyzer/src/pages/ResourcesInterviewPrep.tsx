@@ -28,6 +28,13 @@ const concepts: ConceptCard[] = [
     path: "/resources/interview-prep/nextjs-15-concepts",
     tags: ["nextjs", "react", "fullstack"],
   },
+  {
+    id: "c-sharp-concepts",
+    title: "C# Concepts",
+    subtitle: "Core Concepts & interview questions",
+    path: "/resources/interview-prep/c-sharp-concepts",
+    tags: ["C", "C#", "Game", "Unity"],
+  },
   // add more later
 ];
 

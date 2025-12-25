@@ -8,8 +8,11 @@ import ResumeAnalysisReport from "./pages/ResumeAnalysisReport";
 import ATSChecker from "./pages/ATSChecker";
 import ResourcesResumeWriting from "./pages/ResourcesResumeWriting";
 import ResourcesInterviewPrep from "./pages/ResourcesInterviewPrep";
+//adding concepts
 import ReactConceptsPage from "./routes/interview/ReactConceptsPage";
 import Nextjs15ConceptsPage from "./routes/interview/Nextjs15ConceptsPage";
+import CSharpConceptsPage from "./routes/interview/CSharpConceptsPage";
+
 import ResourcesCoverLetter from "./pages/ResourcesCoverLetter";
 import ResourcesRoadmap from "./pages/ResourcesRoadmap";
 import RoadmapResult from "./pages/RoadmapResult";
@@ -84,6 +87,15 @@ const App = () => (
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/resources/interview-prep/c-sharp-concepts"
+          element={
+            <ProtectedRoute>
+              <CSharpConceptsPage />
+            </ProtectedRoute>
+          }
+        />
+
 
         <Route
           path="/resources/cover-letter"
