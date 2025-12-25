@@ -498,7 +498,7 @@ ${jobDescription.slice(0, 6000)}
 });
 
 /**
- * NEW: Email resume analysis report as PDF
+ * Email resume analysis report as PDF (MailerSend SMTP)
  * Body: { email: string; pdfBase64: string }
  */
 app.post(
@@ -519,15 +519,15 @@ app.post(
       const pdfBuffer = Buffer.from(pdfBase64, "base64");
 
       const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
+        host: process.env.SMTP_HOST || "smtp.mailersend.net",
         port: Number(process.env.SMTP_PORT || 587),
-        secure: false,
+        secure: false, // STARTTLS on 587 for MailerSend [web:269][web:270]
         auth: {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASS,
         },
         tls: {
-          rejectUnauthorized: false, // if needed for local dev with Gmail
+          rejectUnauthorized: false, // DEV ONLY: accept self-signed or intercepted certs [web:288][web:293]
         },
       });
 
