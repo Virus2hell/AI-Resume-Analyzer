@@ -35,6 +35,13 @@ const concepts: ConceptCard[] = [
     path: "/resources/interview-prep/c-sharp-concepts",
     tags: ["C", "C#", "Game", "Unity"],
   },
+  {
+    id: "javascript-beginner-concepts",
+    title: "Javascript Beginner Concepts",
+    subtitle: "Core Concepts & interview questions",
+    path: "/resources/interview-prep/javascript-beginner-concepts",
+    tags: ["frontend", "beginner", "web development", "javascript"],
+  },
   // add more later
 ];
 
