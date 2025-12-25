@@ -42,6 +42,13 @@ const concepts: ConceptCard[] = [
     path: "/resources/interview-prep/javascript-beginner-concepts",
     tags: ["frontend", "beginner", "web development", "javascript"],
   },
+  {
+    id: "javascript-intermediate-concepts",
+    title: "Javascript Intermediate Concepts",
+    subtitle: "Core Concepts & interview questions",
+    path: "/resources/interview-prep/javascript-intermediate-concepts",
+    tags: ["frontend", "beginner", "web development", "javascript"],
+  },
   // add more later
 ];
 

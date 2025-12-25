@@ -13,6 +13,7 @@ import ReactConceptsPage from "./routes/interview/ReactConceptsPage";
 import Nextjs15ConceptsPage from "./routes/interview/Nextjs15ConceptsPage";
 import CSharpConceptsPage from "./routes/interview/CSharpConceptsPage";
 import JavascriptBeginnerPage from "./routes/interview/JavascriptBeginnerPage";
+import JavascriptIntermediatePage from "./routes/interview/JavascriptIntermediatePage";
 
 import ResourcesCoverLetter from "./pages/ResourcesCoverLetter";
 import ResourcesRoadmap from "./pages/ResourcesRoadmap";
@@ -101,6 +102,14 @@ const App = () => (
           element={
             <ProtectedRoute>
               < JavascriptBeginnerPage/>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/resources/interview-prep/javascript-intermediate-concepts"
+          element={
+            <ProtectedRoute>
+              < JavascriptIntermediatePage/>
             </ProtectedRoute>
           }
         />
