@@ -19,6 +19,9 @@ import PythonConceptsPage from "./routes/interview/PythonconceptsPage";
 import SQLBeginnerPage from "./routes/interview/SQLBeginnerPage";
 import SQLIntermediatePage from "./routes/interview/SQLIntermediateGuide";
 import SQLAdvancePage from "./routes/interview/SQLAdvancePage";
+import JavaBeginnerPage from "./routes/interview/JavaBeginnerPage";
+import JavaIntermediatePage from "./routes/interview/JavaIntermediatePage";
+import JavaAdvancePage from "./routes/interview/JavaAdvancePage";
 
 import ResourcesCoverLetter from "./pages/ResourcesCoverLetter";
 import ResourcesRoadmap from "./pages/ResourcesRoadmap";
@@ -155,6 +158,30 @@ const App = () => (
           element={
             <ProtectedRoute>
               < SQLAdvancePage/>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/resources/interview-prep/java-beginner-concepts"
+          element={
+            <ProtectedRoute>
+              < JavaBeginnerPage/>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/resources/interview-prep/java-intermediate-concepts"
+          element={
+            <ProtectedRoute>
+              < JavaIntermediatePage/>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/resources/interview-prep/java-advance-concepts"
+          element={
+            <ProtectedRoute>
+              < JavaAdvancePage/>
             </ProtectedRoute>
           }
         />

@@ -84,6 +84,27 @@ const concepts: ConceptCard[] = [
     path: "/resources/interview-prep/sql-advance-concepts",
     tags: ["sql", "relational", "dbms"],
   },
+  {
+    id: "java-beginner-concepts",
+    title: "Java Beginner Concepts",
+    subtitle: "Basics, OOPs, Exception Handling, MultiThreading",
+    path: "/resources/interview-prep/java-beginner-concepts",
+    tags: ["java", "OOPs"],
+  },
+  {
+    id: "java-intermediate-concepts",
+    title: "Java Intermediate Concepts",
+    subtitle: "Java8, Memory Management, File Handling",
+    path: "/resources/interview-prep/java-intermediate-concepts",
+    tags: ["java", "java8"],
+  },
+  {
+    id: "java-advance-concepts",
+    title: "Java Advance Concepts",
+    subtitle: "Advanced Concepts, Design Patterns",
+    path: "/resources/interview-prep/java-advance-concepts",
+    tags: ["java", "Design"],
+  },
   // add more later
 ];
 
