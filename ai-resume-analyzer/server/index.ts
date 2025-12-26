@@ -519,22 +519,19 @@ app.post(
       const pdfBuffer = Buffer.from(pdfBase64, "base64");
 
       const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || "smtp.mailersend.net",
-        port: Number(process.env.SMTP_PORT || 587),
-        secure: false, // STARTTLS on 587 for MailerSend [web:269][web:270]
+        service: "gmail",
         auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
+          user: process.env.SMTP_USER, // e.g. "yourname@gmail.com"
+          pass: process.env.SMTP_PASS, // 16-char Google App Password
         },
         tls: {
-          rejectUnauthorized: false, // DEV ONLY: accept self-signed or intercepted certs [web:288][web:293]
-        },
+          rejectUnauthorized: false,       // Fix self-signed cert errors
+          servername: "smtp.gmail.com"     // SNI fix for Gmail routing [web:21]
+        }
       });
 
       await transporter.sendMail({
-        from: `"KeyWorded" <${
-          process.env.SMTP_FROM || "no-reply@keyworded.in"
-        }>`,
+        from: `"KeyWorded" <${process.env.SMTP_USER}>`,
         to: email,
         subject: "Your KeyWorded resume analysis report",
         html: `<p>Hi,</p>
