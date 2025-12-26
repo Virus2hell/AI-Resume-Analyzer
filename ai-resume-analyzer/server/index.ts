@@ -519,24 +519,28 @@ app.post(
       const pdfBuffer = Buffer.from(pdfBase64, "base64");
 
       const transporter = nodemailer.createTransport({
-        service: "gmail",
+        host: process.env.SMTP_HOST || "smtp.mailersend.net",
+        port: Number(process.env.SMTP_PORT) || 587,
+        secure: false,
         auth: {
-          user: process.env.SMTP_USER, // e.g. "yourname@gmail.com"
-          pass: process.env.SMTP_PASS, // 16-char Google App Password
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
         },
         tls: {
-          rejectUnauthorized: false,       // Fix self-signed cert errors
-          servername: "smtp.gmail.com"     // SNI fix for Gmail routing [web:21]
-        }
+          rejectUnauthorized: false,
+        },
       });
 
       await transporter.sendMail({
-        from: `"KeyWorded" <${process.env.SMTP_USER}>`,
+        // FIXED: Use ONLY the raw email address for MailerSend
+        from: process.env.SMTP_FROM || process.env.SMTP_USER || "MS_xxxxxxxxxxxxxx@msapi.net",
         to: email,
         subject: "Your KeyWorded resume analysis report",
         html: `<p>Hi,</p>
 <p>Thanks for using <strong>KeyWorded</strong>. Your resume analysis report is attached as a PDF.</p>
-<p>Happy job hunting!</p>`,
+<p>Happy job hunting!</p>
+<br><br>
+<p><small>Sent from KeyWorded - Your AI Resume Optimizer</small></p>`,
         attachments: [
           {
             filename: "resume-analysis-report.pdf",
@@ -554,6 +558,7 @@ app.post(
     }
   }
 );
+
 
 const PORT = Number(process.env.PORT) || 4000;
 app.listen(PORT, () => {
