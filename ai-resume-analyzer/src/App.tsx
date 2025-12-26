@@ -18,6 +18,7 @@ import JavascriptAdvancePage from "./routes/interview/JavascriptAdvancePage";
 import PythonConceptsPage from "./routes/interview/PythonconceptsPage";
 import SQLBeginnerPage from "./routes/interview/SQLBeginnerPage";
 import SQLIntermediatePage from "./routes/interview/SQLIntermediateGuide";
+import SQLAdvancePage from "./routes/interview/SQLAdvancePage";
 
 import ResourcesCoverLetter from "./pages/ResourcesCoverLetter";
 import ResourcesRoadmap from "./pages/ResourcesRoadmap";
@@ -146,6 +147,14 @@ const App = () => (
           element={
             <ProtectedRoute>
               < SQLIntermediatePage/>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/resources/interview-prep/sql-advance-concepts"
+          element={
+            <ProtectedRoute>
+              < SQLAdvancePage/>
             </ProtectedRoute>
           }
         />

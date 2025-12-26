@@ -77,6 +77,13 @@ const concepts: ConceptCard[] = [
     path: "/resources/interview-prep/sql-intermediate-concepts",
     tags: ["sql", "relational", "dbms"],
   },
+  {
+    id: "sql-advance-concepts",
+    title: "SQL Advance Concepts",
+    subtitle: "Advanced Concepts, Data Types & Function",
+    path: "/resources/interview-prep/sql-advance-concepts",
+    tags: ["sql", "relational", "dbms"],
+  },
   // add more later
 ];
 
