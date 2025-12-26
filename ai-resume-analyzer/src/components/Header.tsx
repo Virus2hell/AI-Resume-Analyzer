@@ -201,10 +201,10 @@ const Header = () => {
           <div className="hidden lg:flex items-center gap-3">
             {!user ? (
               <>
-                <Link to="/auth" className="btn-ghost">
+                <Link to="/auth?mode=login" className="btn-ghost">
                   Log in
                 </Link>
-                <Link to="/auth" className="btn-primary">
+                <Link to="/auth?mode=signup" className="btn-primary">
                   Sign up
                 </Link>
               </>
@@ -213,10 +213,7 @@ const Header = () => {
                 <Link to="/dashboard" className="btn-ghost">
                   Dashboard
                 </Link>
-                <button
-                  onClick={signOut}
-                  className="btn-secondary"
-                >
+                <button onClick={signOut} className="btn-secondary">
                   Log out
                 </button>
               </>
@@ -314,14 +311,14 @@ const Header = () => {
               {!user ? (
                 <>
                   <Link
-                    to="/auth"
+                    to="/auth?mode=login"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="btn-ghost mt-2 w-full text-center"
                   >
                     Log in
                   </Link>
                   <Link
-                    to="/auth"
+                    to="/auth?mode=signup"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="btn-primary mt-2 w-full text-center"
                   >
