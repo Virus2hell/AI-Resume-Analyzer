@@ -1,4 +1,4 @@
-# Advanced SQL Interview Questions & Answers
+# SQL Interview Questions & Answers
 ## Indexes, Views, Stored Procedures, Transactions & Database Design
 
 ## Table of Contents
