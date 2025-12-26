@@ -63,6 +63,13 @@ const concepts: ConceptCard[] = [
     path: "/resources/interview-prep/python-concepts",
     tags: ["python", "numpy", "pandas"],
   },
+  {
+    id: "sql-beginner-concepts",
+    title: "SQL Beginner Concepts",
+    subtitle: "Basics, Data Retrieval, Advanced Querying,  Data Manipulation",
+    path: "/resources/interview-prep/sql-beginner-concepts",
+    tags: ["sql", "relational", "dbms"],
+  },
   // add more later
 ];
 
