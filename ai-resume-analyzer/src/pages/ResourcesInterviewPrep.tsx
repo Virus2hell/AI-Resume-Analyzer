@@ -70,6 +70,13 @@ const concepts: ConceptCard[] = [
     path: "/resources/interview-prep/sql-beginner-concepts",
     tags: ["sql", "relational", "dbms"],
   },
+  {
+    id: "sql-intermediate-concepts",
+    title: "SQL Intermediate Concepts",
+    subtitle: "Indexes and Performance, Views and Stored Procedures, Data Integrity and Constraints",
+    path: "/resources/interview-prep/sql-intermediate-concepts",
+    tags: ["sql", "relational", "dbms"],
+  },
   // add more later
 ];
 
