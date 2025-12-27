@@ -105,7 +105,6 @@ const concepts: ConceptCard[] = [
     path: "/resources/interview-prep/java-advance-concepts",
     tags: ["java", "Design"],
   },
-  // add more later
 ];
 
 const ResourcesInterviewPrep = () => {
@@ -140,7 +139,7 @@ const ResourcesInterviewPrep = () => {
       <div className="section-container py-12">
         <div className="mx-auto max-w-5xl">
           {/* Header */}
-          <div className="mb-8">
+          <div className="mb-4">
             <h1 className="text-3xl font-bold text-foreground sm:text-4xl">
               Interview Prep
             </h1>
@@ -148,6 +147,12 @@ const ResourcesInterviewPrep = () => {
               Deep-dive notes, concepts, and curated Q&amp;A for popular tech
               stacks and languages.
             </p>
+          </div>
+
+          {/* NOTE */}
+          <div className="mb-6 rounded-md border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+            <span className="font-semibold">Note:</span>{" "}
+            Log in to access the material on each detailed concept page.
           </div>
 
           {/* Search bar */}
@@ -203,8 +208,8 @@ const ResourcesInterviewPrep = () => {
 
           {!user && (
             <p className="mt-6 text-xs text-center text-muted-foreground">
-              You can browse the interview prep topics, but you need to create
-              a free account to open any detailed concept page.
+              You can browse the interview prep topics, but you need to create a
+              free account to open any detailed concept page.
             </p>
           )}
         </div>
