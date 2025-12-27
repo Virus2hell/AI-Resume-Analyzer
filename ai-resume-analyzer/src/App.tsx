@@ -15,7 +15,7 @@ import CSharpConceptsPage from "./routes/interview/CSharpConceptsPage";
 import JavascriptBeginnerPage from "./routes/interview/JavascriptBeginnerPage";
 import JavascriptIntermediatePage from "./routes/interview/JavascriptIntermediatePage";
 import JavascriptAdvancePage from "./routes/interview/JavascriptAdvancePage";
-import PythonPage from "./routes/interview/PythonPage";
+import PythonConceptsPage from "./routes/interview/PythonCoceptsPage";
 import SQLBeginnerPage from "./routes/interview/SQLBeginnerPage";
 import SQLIntermediatePage from "./routes/interview/SQLIntermediateGuide";
 import SQLAdvancePage from "./routes/interview/SQLAdvancePage";
@@ -133,7 +133,7 @@ const App = () => (
           path="/resources/interview-prep/python-concepts"
           element={
             <ProtectedRoute>
-              < PythonPage/>
+              < PythonConceptsPage/>
             </ProtectedRoute>
           }
         />
