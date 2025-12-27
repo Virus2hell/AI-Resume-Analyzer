@@ -9,6 +9,8 @@ interface FormData {
   message: string;
 }
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+
 const Contact = () => {
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -38,7 +40,7 @@ const Contact = () => {
     setError(null);
 
     try {
-      const res = await fetch('http://localhost:4000/api/contact', {
+      const res = await fetch(`${API_BASE_URL}/api/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -53,7 +55,7 @@ const Contact = () => {
         setIsSubmitted(true);
         setFormData({ name: '', email: '', subject: '', message: '' });
       }
-    } catch (err) {
+    } catch {
       setError('Network error. Please check your connection and try again.');
       setIsSubmitted(false);
     } finally {
@@ -71,7 +73,7 @@ const Contact = () => {
               Contact Us
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-              Have questions or feedback? We'd love to hear from you.
+              Have questions or feedback? We&apos;d love to hear from you.
             </p>
           </div>
 
