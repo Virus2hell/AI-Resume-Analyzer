@@ -559,6 +559,69 @@ app.post(
   }
 );
 
+/**
+ * Contact form email (uses existing SMTP settings)
+ * Body: { name: string; email: string; subject: string; message: string }
+ */
+app.post("/api/contact", async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const { name, email, subject, message } = req.body as {
+      name: string;
+      email: string;
+      subject: string;
+      message: string;
+    };
+
+    if (!name || !email || !subject || !message) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    // basic email check
+    if (!email.includes("@")) {
+      return res.status(400).json({ error: "Invalid email address" });
+    }
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.G_SMTP_HOST,
+      port: Number(process.env.G_SMTP_PORT) || 587,
+      secure: false,
+      auth: {
+        user: process.env.G_SMTP_USER,
+        pass: process.env.G_SMTP_PASS,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+
+    await transporter.sendMail({
+      from:
+        process.env.G_SMTP_FROM ||
+        process.env.G_SMTP_USER ||
+        "no-reply@example.com",
+      to: process.env.G_SMTP_FROM || process.env.G_SMTP_USER, // you receive the message
+      replyTo: email,
+      subject: `Contact form: ${subject}`,
+      html: `
+        <h2>New contact form submission</h2>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Subject:</strong> ${subject}</p>
+        <p><strong>Message:</strong></p>
+        <p style="white-space: pre-wrap;">${message}</p>
+      `,
+    });
+
+    return res.json({ ok: true, message: "Message sent successfully" });
+  } catch (err: any) {
+    console.error("contact route error:", err);
+    return res
+      .status(500)
+      .json({ error: err.message || "Failed to send contact message" });
+  }
+});
+
+
 
 const PORT = Number(process.env.PORT) || 4000;
 app.listen(PORT, () => {
