@@ -15,7 +15,7 @@ import CSharpConceptsPage from "./routes/interview/CSharpConceptsPage";
 import JavascriptBeginnerPage from "./routes/interview/JavascriptBeginnerPage";
 import JavascriptIntermediatePage from "./routes/interview/JavascriptIntermediatePage";
 import JavascriptAdvancePage from "./routes/interview/JavascriptAdvancePage";
-import PythonConceptsPage from "./routes/interview/PythonconceptsPage";
+// import PythonConceptsPage from "./routes/interview/PythonconceptsPage";
 import SQLBeginnerPage from "./routes/interview/SQLBeginnerPage";
 import SQLIntermediatePage from "./routes/interview/SQLIntermediateGuide";
 import SQLAdvancePage from "./routes/interview/SQLAdvancePage";
@@ -129,14 +129,14 @@ const App = () => (
             </ProtectedRoute>
           }
         />
-        <Route
+        {/* <Route
           path="/resources/interview-prep/python-concepts"
           element={
             <ProtectedRoute>
               < PythonConceptsPage/>
             </ProtectedRoute>
           }
-        />
+        /> */}
         <Route
           path="/resources/interview-prep/sql-beginner-concepts"
           element={
