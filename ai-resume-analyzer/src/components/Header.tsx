@@ -18,7 +18,6 @@ import { useTheme } from "@/components/theme-provider";
 
 const navItems = [
   { name: "Home", path: "/" },
-  { name: "Jobs", path: "/jobs" },
   { name: "About Us", path: "/about" },
   { name: "Contact Us", path: "/contact" },
 ];
@@ -29,7 +28,6 @@ const toolItems = [
 ];
 
 const resourceItems = [
-  { name: "Resume Writing", path: "/resources/resume-writing", icon: FileText },
   {
     name: "Interview Prep Material",
     path: "/resources/interview-prep",
@@ -193,7 +191,7 @@ const Header = () => {
               )}
             </div>
 
-            {/* Jobs, About, Contact */}
+            {/* About, Contact */}
             {navItems.slice(1).map((item) => (
               <Link
                 key={item.path}
@@ -315,7 +313,7 @@ const Header = () => {
                 ))}
               </div>
 
-              {/* Jobs, About, Contact */}
+              {/* About, Contact */}
               {navItems.slice(1).map((item) => (
                 <Link
                   key={item.path}
