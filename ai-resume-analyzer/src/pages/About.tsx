@@ -18,13 +18,13 @@ const values = [
     icon: Zap,
     title: "Practical Learning, Not Just Theory",
     description:
-      "From tech-stack resources with code and examples to clear roadmaps for different domains, everything is designed to help you actually build skills, not just read about them.",
+      "From tech stack resources with code and examples to clear roadmaps for different domains, everything is designed to help you actually build skills, not just read about them.",
   },
   {
     icon: Heart,
     title: "Support For Job Seekers",
     description:
-      "Job hunting is stressful, especially as a student. KeyWorded aims to reduce that stress with clear feedback, resume-writing help, and a curated job section.",
+      "Job hunting is stressful, especially as a student. KeyWorded aims to reduce that stress with clear feedback,and resume writing help.",
   },
 ];
 
@@ -80,7 +80,7 @@ const About = () => {
                 Our goal is simple: help students and early-career developers
                 understand what each job really expects, tailor their resumes
                 with confidence, and learn the right skills to move closer to
-                their dream role—one job description at a time.
+                their dream role.
               </p>
             </div>
           </div>
