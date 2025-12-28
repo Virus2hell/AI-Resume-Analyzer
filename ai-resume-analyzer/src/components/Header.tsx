@@ -10,8 +10,11 @@ import {
   PenSquare,
   Map,
   Gauge,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/components/theme-provider";
 
 const navItems = [
   { name: "Home", path: "/" },
@@ -46,6 +49,7 @@ const Header = () => {
 
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   const isToolPath =
     location.pathname === "/resume-analysis" ||
@@ -68,6 +72,12 @@ const Header = () => {
   ) => {
     if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
     timeoutRef.current = window.setTimeout(() => setter(false), delay);
+  };
+
+  const isDark = theme === "dark";
+
+  const toggleTheme = () => {
+    setTheme(isDark ? "light" : "dark");
   };
 
   return (
@@ -183,7 +193,7 @@ const Header = () => {
               )}
             </div>
 
-            {/* Remaining nav items: Jobs, About, Contact */}
+            {/* Jobs, About, Contact */}
             {navItems.slice(1).map((item) => (
               <Link
                 key={item.path}
@@ -195,6 +205,20 @@ const Header = () => {
                 {item.name}
               </Link>
             ))}
+
+            {/* Theme toggle beside Contact */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="ml-2 inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm transition-colors hover:bg-secondary"
+              aria-label="Toggle theme"
+            >
+              {isDark ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
+            </button>
           </div>
 
           {/* Auth controls - Desktop (right side) */}
@@ -306,6 +330,20 @@ const Header = () => {
                   {item.name}
                 </Link>
               ))}
+
+              {/* Mobile theme toggle */}
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="mt-2 flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              >
+                {isDark ? (
+                  <Sun className="h-4 w-4" />
+                ) : (
+                  <Moon className="h-4 w-4" />
+                )}
+                <span>{isDark ? "Light theme" : "Dark theme"}</span>
+              </button>
 
               {/* Mobile auth buttons */}
               {!user ? (
