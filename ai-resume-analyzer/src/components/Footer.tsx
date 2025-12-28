@@ -55,14 +55,6 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <Link
-                  to="/resources/resume-writing"
-                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  Resume Writing
-                </Link>
-              </li>
-              <li>
-                <Link
                   to="/resources/interview-prep"
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
@@ -110,27 +102,8 @@ const Footer = () => {
                   Contact Us
                 </Link>
               </li>
-              <li>
-                <Link
-                  to="/jobs"
-                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  Jobs
-                </Link>
-              </li>
             </ul>
           </div>
-
-          {/* Contact */}
-          {/* <div className="min-w-[180px]">
-            <h4 className="mb-4 text-sm font-semibold text-foreground">
-              Contact
-            </h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>atharvanarvekar269@gmai.com</li>
-              <li>+987654321</li>
-            </ul>
-          </div> */}
         </div>
 
         <div className="mt-12 border-t border-border pt-8 text-center text-sm text-muted-foreground">
