@@ -49,7 +49,7 @@ export function ThemeProvider({
     const stored = localStorage.getItem(storageKey) as Theme | null;
     const systemTheme = getSystemTheme();
     const activeTheme = (stored as Theme) ?? 
-                       (systemTheme === "dark" ? "dark" : "light") ?? 
+                       (systemTheme === "dark" ? "dark" : "light") ??
                        defaultTheme;
 
     // Apply theme BEFORE first paint
