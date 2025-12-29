@@ -8,7 +8,20 @@ import nodemailer from "nodemailer";
 dotenv.config();
 
 const app = express();
-app.use(cors());
+// ✅ FIXED CORS for keyworded.in + local dev
+app.use(
+  cors({
+    origin: [
+      'https://keyworded.in',
+      'http://keyworded.in',
+      'http://localhost:5173',
+      'http://localhost:3000'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: false,
+  })
+);
 app.use(express.json({ limit: "10mb" }));
 
 const apiKey = process.env.GROQ_API_KEY;
