@@ -76,12 +76,11 @@ Your goals:
 RESUME:
 ${resumeText.slice(0, 8000)}
 
-${
-  jobDescription?.trim()
-    ? `JOB DESCRIPTION (entire posting, including responsibilities and skills):
+${jobDescription?.trim()
+          ? `JOB DESCRIPTION (entire posting, including responsibilities and skills):
 ${jobDescription.slice(0, 4000)}`
-    : "NO JOB DESCRIPTION PROVIDED – assume a generic full‑stack / software role and still provide a detailed analysis."
-}
+          : "NO JOB DESCRIPTION PROVIDED – assume a generic full‑stack / software role and still provide a detailed analysis."
+        }
 
 Return ONLY valid JSON using this exact shape:
 
@@ -240,8 +239,8 @@ app.post("/api/generate-cover-letter", async (req: Request, res: Response) => {
       tone === "formal"
         ? "Use a formal, professional tone."
         : tone === "casual"
-        ? "Use a friendly, conversational tone while staying professional."
-        : "Use a concise, to-the-point professional tone.";
+          ? "Use a friendly, conversational tone while staying professional."
+          : "Use a concise, to-the-point professional tone.";
 
     const lengthText =
       length === "short"
@@ -599,19 +598,20 @@ app.post("/api/contact", async (req: Request, res: Response) => {
       port: process.env.G_SMTP_PORT
     });
 
-    // ✅ FIXED: Correct method name
+    // ✅ USE WORKING MAILERSEND CONFIG (same as /api/send-resume-report)
     const transporter = nodemailer.createTransport({
-      host: process.env.G_SMTP_HOST,
-      port: Number(process.env.G_SMTP_PORT) || 587,
+      host: process.env.SMTP_HOST || "smtp.mailersend.net",  // ✅ WORKING
+      port: Number(process.env.SMTP_PORT) || 587,
       secure: false,
       auth: {
-        user: process.env.G_SMTP_USER,
-        pass: process.env.G_SMTP_PASS,
+        user: process.env.SMTP_USER,     // ✅ Your working MailerSend user
+        pass: process.env.SMTP_PASS,    // ✅ Your working MailerSend pass
       },
       tls: {
         rejectUnauthorized: false,
       },
     });
+
 
     // ✅ SMTP DEBUG
     console.log("🔍 Testing SMTP connection...");
