@@ -56,12 +56,17 @@ const Index = () => {
       <section className="relative overflow-hidden bg-gradient-to-b from-secondary/50 to-background py-20 lg:py-32">
         <div className="section-container">
           <div className="mx-auto max-w-3xl text-center">
-            <h1 className="animate-slide-up text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-              Land Your Dream Job with{' '}
-              <span className="gradient-text">AI-Powered</span> Resume Analysis
+            <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl leading-tight">
+              Land Your Dream Job
+            </h1>
+            <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl leading-tight">
+              with <span className="gradient-text">AI-Powered</span> Resume
+            </h1>
+            <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl leading-tight">
+              Analysis
             </h1>
             <p className="animate-slide-up mt-6 text-lg text-muted-foreground" style={{ animationDelay: '0.1s' }}>
-              Upload your resume and job description to get instant, actionable feedback. 
+              Upload your resume and job description to get instant, actionable feedback.
               Our AI analyzes your qualifications against job requirements to maximize your chances.
             </p>
             <div className="animate-slide-up mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row" style={{ animationDelay: '0.2s' }}>
