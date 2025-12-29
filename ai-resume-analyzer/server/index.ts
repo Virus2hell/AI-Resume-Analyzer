@@ -576,7 +576,7 @@ app.post(
  * Contact form email (uses existing SMTP settings)
  * Body: { name: string; email: string; subject: string; message: string }
  */
-app.post("/api/contact", async (req: Request, res: Response): Promise<Response> => {
+app.post("/api/contact", async (req: Request, res: Response) => {
   try {
     const { name, email, subject, message } = req.body as {
       name: string;
@@ -589,11 +589,17 @@ app.post("/api/contact", async (req: Request, res: Response): Promise<Response> 
       return res.status(400).json({ error: "All fields are required" });
     }
 
-    // basic email check
     if (!email.includes("@")) {
       return res.status(400).json({ error: "Invalid email address" });
     }
 
+    console.log("🚀 Creating transporter with env vars:", {
+      host: process.env.G_SMTP_HOST ? "SET" : "MISSING",
+      user: process.env.G_SMTP_USER ? "SET" : "MISSING",
+      port: process.env.G_SMTP_PORT
+    });
+
+    // ✅ FIXED: Correct method name
     const transporter = nodemailer.createTransport({
       host: process.env.G_SMTP_HOST,
       port: Number(process.env.G_SMTP_PORT) || 587,
@@ -607,12 +613,24 @@ app.post("/api/contact", async (req: Request, res: Response): Promise<Response> 
       },
     });
 
+    // ✅ SMTP DEBUG
+    console.log("🔍 Testing SMTP connection...");
+    await new Promise<void>((resolve, reject) => {
+      transporter.verify((error: any, success: boolean) => {
+        if (error) {
+          console.error("❌ SMTP connection failed:", error.message);
+          reject(error);
+        } else {
+          console.log("✅ SMTP connected successfully");
+          resolve();
+        }
+      });
+    });
+
+    console.log("📧 Sending email...");
     await transporter.sendMail({
-      from:
-        process.env.G_SMTP_FROM ||
-        process.env.G_SMTP_USER ||
-        "no-reply@example.com",
-      to: process.env.G_SMTP_FROM || process.env.G_SMTP_USER, // you receive the message
+      from: process.env.G_SMTP_FROM || process.env.G_SMTP_USER || "no-reply@example.com",
+      to: process.env.G_SMTP_FROM || process.env.G_SMTP_USER,
       replyTo: email,
       subject: `Contact form: ${subject}`,
       html: `
@@ -625,14 +643,15 @@ app.post("/api/contact", async (req: Request, res: Response): Promise<Response> 
       `,
     });
 
+    console.log("✅ Email sent successfully");
     return res.json({ ok: true, message: "Message sent successfully" });
   } catch (err: any) {
-    console.error("contact route error:", err);
-    return res
-      .status(500)
-      .json({ error: err.message || "Failed to send contact message" });
+    console.error("❌ contact route error:", err.message || err);
+    return res.status(500).json({ error: err.message || "Failed to send contact message" });
   }
 });
+
+
 
 
 
