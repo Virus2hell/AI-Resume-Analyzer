@@ -32,6 +32,138 @@ if (!apiKey) {
 }
 
 const groq = new Groq({ apiKey });
+const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+
+/**
+ * Calls Groq in JSON mode and returns the parsed object.
+ * Groq rejects output that is not valid JSON (e.g. cut off by max_tokens)
+ * with a 400 "json_validate_failed", so retry that (and 429/5xx) once.
+ */
+async function groqJSON(
+  prompt: string,
+  options: { temperature: number; max_tokens: number }
+): Promise<any> {
+  const maxAttempts = 2;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const completion = await groq.chat.completions.create({
+        model: GROQ_MODEL,
+        temperature: options.temperature,
+        max_tokens: options.max_tokens,
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a JSON API. Always respond with a single valid JSON object and nothing else.",
+          },
+          { role: "user", content: prompt },
+        ],
+      });
+
+      const content = completion.choices[0]?.message?.content;
+      if (!content) throw new Error("Empty response from model");
+      return JSON.parse(content);
+    } catch (err: any) {
+      const status = err?.status;
+      const code = err?.error?.error?.code;
+      console.error(
+        `Groq JSON call failed (attempt ${attempt}/${maxAttempts}):`,
+        status ?? "",
+        code ?? "",
+        err?.message
+      );
+
+      const retryable =
+        code === "json_validate_failed" ||
+        err instanceof SyntaxError ||
+        status === 429 ||
+        (typeof status === "number" && status >= 500);
+      if (!retryable || attempt === maxAttempts) throw err;
+    }
+  }
+}
+
+const errorMessage = (err: any) =>
+  err?.error?.error?.message || err?.message || "Unknown error";
+
+const num = (v: any) => (Number.isFinite(Number(v)) ? Number(v) : 0);
+const arr = (v: any) => (Array.isArray(v) ? v : []);
+const str = (v: any) => (typeof v === "string" ? v : "");
+
+/**
+ * Fills in any field the model left out, so the report page
+ * (which reads e.g. report.radar.content) never crashes.
+ */
+function normalizeDetailedReport(r: any) {
+  const overview = r?.overview ?? {};
+  const radar = r?.radar ?? {};
+  const content = r?.content ?? {};
+  const skills = r?.skills ?? {};
+  const format = r?.format ?? {};
+  const sections = r?.sections ?? {};
+  const style = r?.style ?? {};
+
+  return {
+    overview: {
+      matchScore: num(overview.matchScore),
+      summary: str(overview.summary),
+      highlights: arr(overview.highlights),
+      improvements: arr(overview.improvements),
+    },
+    radar: {
+      content: num(radar.content),
+      skills: num(radar.skills),
+      format: num(radar.format),
+      sections: num(radar.sections),
+      style: num(radar.style),
+    },
+    content: {
+      description: str(content.description),
+      measurableResultScore: num(content.measurableResultScore),
+      spellingGrammarScore: num(content.spellingGrammarScore),
+      measurableSuggestions: arr(content.measurableSuggestions),
+      grammarIssues: arr(content.grammarIssues),
+    },
+    skills: {
+      description: str(skills.description),
+      hardSkillsSummary: {
+        missingCount: num(skills.hardSkillsSummary?.missingCount),
+        presentCount: num(skills.hardSkillsSummary?.presentCount),
+      },
+      softSkillsSummary: {
+        missingCount: num(skills.softSkillsSummary?.missingCount),
+        presentCount: num(skills.softSkillsSummary?.presentCount),
+      },
+      hardSkills: arr(skills.hardSkills),
+      softSkills: arr(skills.softSkills),
+    },
+    format: {
+      description: str(format.description),
+      dateFormattingStatus: str(format.dateFormattingStatus) || "WARN",
+      resumeLengthScore: num(format.resumeLengthScore),
+      bulletPointScore: num(format.bulletPointScore),
+      dateFormattingTip: str(format.dateFormattingTip),
+      resumeLengthSummary: str(format.resumeLengthSummary),
+      resumeLengthProTip: str(format.resumeLengthProTip),
+      bulletPointSummary: str(format.bulletPointSummary),
+      bulletPointSuggestions: arr(format.bulletPointSuggestions),
+    },
+    sections: {
+      description: str(sections.description),
+      totalRequired: num(sections.totalRequired),
+      presentCount: num(sections.presentCount),
+      items: arr(sections.items),
+    },
+    style: {
+      description: str(style.description),
+      voiceScore: num(style.voiceScore),
+      buzzwordScore: num(style.buzzwordScore),
+      voiceSuggestions: arr(style.voiceSuggestions),
+      buzzwordSuggestions: arr(style.buzzwordSuggestions),
+    },
+  };
+}
 
 interface AnalysisResult {
   overallScore: number;
@@ -178,40 +310,21 @@ Important:
 - For each hard or soft skill, set "source" to where it mainly came from in the JD (e.g., responsibilities vs skills).
 - For grammarIssues, ALWAYS include the original text from the resume, a corrected version, a short issueType, and a brief explanation.
 - In "format", evaluate date formats, overall resume length, and use of bullet points. Populate all fields with concise, specific text and at least one bulletPointSuggestions item when improvement is needed.
+- Keep the output compact so it is never cut off: at most 8 grammarIssues, 12 hardSkills, 8 softSkills, 8 section items, and at most 5 items in any other array.
 - Respond ONLY with JSON, no markdown, no commentary, no backticks.
 `.trim();
 
-      const completion = await groq.chat.completions.create({
-        model: "llama-3.3-70b-versatile",
+      const parsed = await groqJSON(prompt, {
         temperature: 0.25,
-        max_tokens: 1800,
-        response_format: { type: "json_object" },
-        messages: [{ role: "user", content: prompt }],
+        max_tokens: 4096,
       });
 
-      const content = completion.choices[0]?.message?.content;
-      if (!content) {
-        return res
-          .status(500)
-          .json({ error: "Empty response from Groq for detailed analysis" });
-      }
-
-      let parsed: any;
-      try {
-        parsed = JSON.parse(content);
-      } catch (err) {
-        console.error("JSON parse error from Groq:", err, content);
-        return res
-          .status(500)
-          .json({ error: "Failed to parse detailed analysis JSON" });
-      }
-
-      return res.json(parsed);
+      return res.json(normalizeDetailedReport(parsed));
     } catch (error) {
       console.error("Groq detailed analysis error:", error);
-      return res
-        .status(500)
-        .json({ error: "Failed to run detailed resume analysis." });
+      return res.status(500).json({
+        error: `Failed to run detailed resume analysis: ${errorMessage(error)}`,
+      });
     }
   }
 );
@@ -275,7 +388,7 @@ ${jobDescription.slice(0, 4000)}
 `.trim();
 
     const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+      model: GROQ_MODEL,
       temperature: 0.4,
       max_tokens: 900,
       messages: [{ role: "user", content: prompt }],
@@ -328,37 +441,17 @@ RESUME:
 ${resumeText.slice(0, 8000)}
 `.trim();
 
-    const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+    const parsed = await groqJSON(prompt, {
       temperature: 0.2,
-      max_tokens: 900,
-      response_format: { type: "json_object" },
-      messages: [{ role: "user", content: prompt }],
+      max_tokens: 1500,
     });
-
-    const content = completion.choices[0]?.message?.content;
-    if (!content) {
-      return res
-        .status(500)
-        .json({ error: "Empty response from Groq for ATS analysis" });
-    }
-
-    let parsed;
-    try {
-      parsed = JSON.parse(content);
-    } catch (err) {
-      console.error("JSON parse error from Groq:", err, content);
-      return res
-        .status(500)
-        .json({ error: "Failed to parse ATS analysis. Please try again." });
-    }
 
     return res.json(parsed);
   } catch (error) {
     console.error("Groq ATS analysis error:", error);
     return res
       .status(500)
-      .json({ error: "Failed to analyze resume. Please try again." });
+      .json({ error: `Failed to analyze resume: ${errorMessage(error)}` });
   }
 });
 
@@ -475,37 +568,17 @@ JOB DESCRIPTION (full text):
 ${jobDescription.slice(0, 6000)}
 `.trim();
 
-    const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+    const parsed: RoadmapPayload = await groqJSON(prompt, {
       temperature: 0.3,
-      max_tokens: 2000,
-      response_format: { type: "json_object" },
-      messages: [{ role: "user", content: prompt }],
+      max_tokens: 4096,
     });
-
-    const content = completion.choices[0]?.message?.content;
-    if (!content) {
-      return res
-        .status(500)
-        .json({ error: "Empty response from Groq for roadmap generation" });
-    }
-
-    let parsed: RoadmapPayload;
-    try {
-      parsed = JSON.parse(content);
-    } catch (err) {
-      console.error("JSON parse error from Groq (roadmap):", err, content);
-      return res
-        .status(500)
-        .json({ error: "Failed to parse roadmap JSON from model" });
-    }
 
     return res.json(parsed);
   } catch (error) {
     console.error("Groq roadmap generation error:", error);
     return res
       .status(500)
-      .json({ error: "Failed to generate roadmap. Please try again." });
+      .json({ error: `Failed to generate roadmap: ${errorMessage(error)}` });
   }
 });
 
