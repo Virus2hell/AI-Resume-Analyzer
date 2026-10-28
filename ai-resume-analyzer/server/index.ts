@@ -32,7 +32,14 @@ if (!apiKey) {
 }
 
 const groq = new Groq({ apiKey });
-const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+// llama-3.3-70b-versatile was retired by Groq on 2026-08-16; gpt-oss-120b is the recommended replacement.
+const GROQ_MODEL = process.env.GROQ_MODEL || "openai/gpt-oss-120b";
+
+// gpt-oss models reason before answering and those tokens count toward the limit,
+// so keep reasoning short and leave it out of the response.
+const reasoningOptions = GROQ_MODEL.startsWith("openai/gpt-oss")
+  ? { reasoning_effort: "low" as const, include_reasoning: false }
+  : {};
 
 /**
  * Calls Groq in JSON mode and returns the parsed object.
@@ -49,7 +56,8 @@ async function groqJSON(
       const completion = await groq.chat.completions.create({
         model: GROQ_MODEL,
         temperature: options.temperature,
-        max_tokens: options.max_tokens,
+        max_completion_tokens: options.max_tokens,
+        ...reasoningOptions,
         response_format: { type: "json_object" },
         messages: [
           {
@@ -316,7 +324,7 @@ Important:
 
       const parsed = await groqJSON(prompt, {
         temperature: 0.25,
-        max_tokens: 4096,
+        max_tokens: 8192,
       });
 
       return res.json(normalizeDetailedReport(parsed));
@@ -390,7 +398,8 @@ ${jobDescription.slice(0, 4000)}
     const completion = await groq.chat.completions.create({
       model: GROQ_MODEL,
       temperature: 0.4,
-      max_tokens: 900,
+      max_completion_tokens: 2048,
+      ...reasoningOptions,
       messages: [{ role: "user", content: prompt }],
     });
 
@@ -443,7 +452,7 @@ ${resumeText.slice(0, 8000)}
 
     const parsed = await groqJSON(prompt, {
       temperature: 0.2,
-      max_tokens: 1500,
+      max_tokens: 4096,
     });
 
     return res.json(parsed);
@@ -570,7 +579,7 @@ ${jobDescription.slice(0, 6000)}
 
     const parsed: RoadmapPayload = await groqJSON(prompt, {
       temperature: 0.3,
-      max_tokens: 4096,
+      max_tokens: 8192,
     });
 
     return res.json(parsed);
